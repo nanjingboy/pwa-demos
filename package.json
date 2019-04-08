@@ -1,0 +1,10 @@
+{
+  "name": "one",
+  "version": "1.0.0",
+  "scripts": {
+    "serve": "live-server"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.1"
+  }
+}
