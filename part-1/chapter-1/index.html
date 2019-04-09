@@ -2,11 +2,12 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="theme-color" content="#4374A5">
   <title>PWA Manifest Demo</title>
   <link rel="manifest" href="./manifest.json">
 </head>
 <body>
-  <div id="context">Hello PWA Manifest Demo<div>
+  <div>Hello PWA Manifest Demo<div>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js');
