@@ -1,0 +1,13 @@
+.item {
+  height: 30px;
+  line-height: 30px;
+  cursor: pointer;
+}
+
+.completed {
+  text-decoration: line-through;
+}
+
+.actions {
+  margin-top: 10px;
+}
