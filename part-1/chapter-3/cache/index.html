@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Cache Demo</title>
+  <link rel="stylesheet" href="./style.css"/>
+</head>
+<body>
+  <div class="panel">
+    <h1>斜体</h1>
+    <img src="./cat.png"/>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./sw.cache.js');
+      });
+    }
+  </script>
+</body>
+</html>

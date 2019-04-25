@@ -1,0 +1,7 @@
+.panel > h1 {
+  font-style: italic;
+}
+
+.panel > img {
+  border: 1px solid blue;
+}
