@@ -1,0 +1,10 @@
+{
+  "name": "chapter-1",
+  "version": "1.0.0",
+  "scripts": {
+    "serve": "http-server ./src -o -p 8081"
+  },
+  "devDependencies": {
+    "http-server": "^0.11.1"
+  }
+}
