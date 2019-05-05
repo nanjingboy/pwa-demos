@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>BackgroundSync Demo</title>
+  <link rel="stylesheet" href="./style.css"/>
+</head>
+<body>
+  <div>当前网络状态：<span id="network-status">在线</span></div>
+  <div>
+    <input id="name" type="text" placeholder="请输入待办事项"/>
+    <button id="submit">添加</button>
+  </div>
+  <div id="list"></div>
+
+  <script src="./db.js"></script>
+  <script src="./ui.js"></script>
+  <script src="./network.js"></script>
+  <script>
+    window.addEventListener('load', function() {
+      network.getTodos().then(function(todos) {
+        ui.render(todos);
+      });
+      if ('serviceWorker' in navigator && 'SyncManager' in window) {
+        navigator.serviceWorker.register('./sw.js').then(function(registration) {
+          return navigator.serviceWorker.ready;
+        }).then(function(registration) {
+          document.getElementById('submit').addEventListener('click', function() {
+            ui.submit(function(name) {
+              db.addTodo(name).then(function() {
+                registration.sync.register('add-todo').then(function() {
+                  console.log('已触发后台同步：add-todo');
+                });
+              });
+            });
+          });
+        });
+        navigator.serviceWorker.addEventListener('message', function(event) {
+          ui.render(event.data);
+        });
+      } else {
+        document.getElementById('submit').addEventListener('click', function() {
+          ui.submit(function(name) {
+            network.addTodos([{ name: name }]).then(function(todos) {
+              ui.render(todos);
+            });
+          });
+        });
+      }
+    });
+    window.addEventListener('offline', function() {
+      document.getElementById('network-status').innerHTML = '离线';
+    });
+    window.addEventListener('online', function() {
+      document.getElementById('network-status').innerHTML = '在线';
+    });
+  </script>
+</body>
+</html>

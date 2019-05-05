@@ -1,0 +1,14 @@
+{
+  "name": "chapter-4",
+  "version": "1.0.0",
+  "scripts": {
+    "serve": "node ./server.js"
+  },
+  "devDependencies": {
+    "koa": "^2.7.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-json": "^2.0.2",
+    "koa-router": "^7.4.0",
+    "koa-static": "^5.0.0"
+  }
+}
