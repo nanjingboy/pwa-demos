@@ -1,4 +1,3 @@
-
 self.addEventListener('push', function (event) {
   const data = event.data.json();
   const title = 'Push & Notification Demo';
