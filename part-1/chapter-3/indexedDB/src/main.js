@@ -13,7 +13,7 @@ function removeAll() {
     const db = event.target.result;
     const transaction = db.transaction(['todos'], 'readwrite');
     transaction.oncomplete = function() {
-      $('.list').html('');
+      document.getElementById('list').innerHTML = '';
     };
     transaction.objectStore('todos').clear();
   };
@@ -53,7 +53,7 @@ function filter(type) {
     const db = event.target.result;
     const transaction = db.transaction(['todos'], 'readonly');
     transaction.oncomplete = function() {
-      $('.list').html(html);
+      document.getElementById('list').innerHTML = html;
     };
     const todosStore = transaction.objectStore('todos');
     const query = type === 'all' ? null : IDBKeyRange.only(type);
@@ -62,7 +62,7 @@ function filter(type) {
       const cursor = event.target.result;
       if (cursor) {
         const record = cursor.value;
-        html += `<div class="item ${record.status}" onclick="update(${record.id}, '${record.status}')">${record.detail}</div>`;
+        html += `<div class="item ${record.status}" onclick="update(${record.id}, '${record.status}')">${record.detail}（#${record.id}）</div>`;
         cursor.continue();
       }
     }

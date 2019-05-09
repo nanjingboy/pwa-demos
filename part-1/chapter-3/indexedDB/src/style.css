@@ -1,3 +1,7 @@
+body > div {
+  margin-bottom: 5px;
+}
+
 .item {
   height: 30px;
   line-height: 30px;
@@ -6,8 +10,4 @@
 
 .completed {
   text-decoration: line-through;
-}
-
-.actions {
-  margin-top: 10px;
 }

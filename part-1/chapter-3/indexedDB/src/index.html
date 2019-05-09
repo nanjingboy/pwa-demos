@@ -6,23 +6,27 @@
   <link rel="stylesheet" href="./style.css"/>
 </head>
 <body>
-  <input type="text" placeholder="请输入待办事项"/>
-  <div class="list"></div>
-  <div class="actions">
+  <div>
+    <input id="value" type="text" placeholder="请输入待办事项"/>
+    <button id="submit">添加</button>
+  </div>
+  <div id="list"></div>
+  <div>
     <button onclick="filter('all')">显示所有</button>
     <button onclick="filter('completed')">显示已完成</button>
     <button onclick="filter('doing')">显示未完成</button>
     <button onclick="removeAll()">清空</button>
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.4.0.min.js"></script>
   <script src="./main.js"></script>
   <script>
-    $(document).ready(function() {
-      $('input[type="text"]').bind('keypress', function(event) {
-        if (event.keyCode === 13) {
-          add($(this).val());
-          $(this).val('');
+    window.addEventListener('load', function() {
+      document.getElementById('submit').addEventListener('click', function() {
+        const value = document.getElementById('value').value.trim();
+        if (value.length === 0) {
+          alert('待办事项不能为空');
+        } else {
+          add(value);
         }
       });
       filter('all');
