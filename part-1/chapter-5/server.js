@@ -15,7 +15,7 @@ webpush.setVapidDetails(
   'LBj1P1XVRmIir5zxSAGQMvLdwxC87hU6tZYJzxO6NQ4'
 );
 
-let subscription = null
+let subscription = null;
 const languages = ['C++', 'Java', 'JavaScript', 'Swift', 'Kotlin', 'Rust'];
 
 function pushMessage(data) {
