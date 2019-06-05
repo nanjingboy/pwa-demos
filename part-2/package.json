@@ -1,0 +1,16 @@
+{
+  "name": "chapter-4",
+  "version": "1.0.0",
+  "scripts": {
+    "serve": "node ./server.js"
+  },
+  "dependencies": {
+    "koa": "^2.7.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-json": "^2.0.2",
+    "koa-router": "^7.4.0",
+    "koa-static": "^5.0.0",
+    "sqlite3": "^4.0.8",
+    "dayjs": "^1.8.14"
+  }
+}
