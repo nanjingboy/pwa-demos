@@ -25,6 +25,7 @@ function setup() {
       `CREATE TABLE IF NOT EXISTS articles (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title VARCHAR(100) NOT NULL,
+        tag VARCHAR(100) NOT NULL,
         content TEXT NOT NULL,
         created_at DATETIME NOT NULL,
         updated_at DATETIME NOT NULL
@@ -50,13 +51,16 @@ function getArticle(id) {
   return _exec('get', 'SELECT * FROM articles WHERE id=$id', { $id: id });
 }
 
-function createArticle(title, content) {
+function createArticle(title, tag, content) {
   const now = dayjs().format('YYYY-MM-DD HH:mm:ss');
   return _exec(
     'run',
-    'INSERT INTO articles (title, content, created_at, updated_at) VALUES ($title, $content, $createdAt, $updatedAt)',
+    `INSERT INTO articles (
+      title, tag, content, created_at, updated_at
+    ) VALUES ($title, $tag, $content, $createdAt, $updatedAt)`,
     {
       $title: title,
+      $tag: tag,
       $content: content,
       $createdAt: now,
       $updatedAt: now
@@ -64,12 +68,18 @@ function createArticle(title, content) {
   );
 }
 
-function updateArticle(id, title, content) {
+function updateArticle(id, title, tag, content) {
   return _exec(
     'run',
-    'UPDATE articles set title=$title, content=$content, updated_at=$updatedAt WHERE id=$id',
+    `UPDATE articles SET
+      title=$title,
+      tag=$tag,
+      content=$content,
+      updated_at=$updatedAt
+      WHERE id=$id`,
     {
       $id: id,
+      $tag: tag,
       $title: title,
       $content: content,
       $updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
@@ -92,7 +102,9 @@ function getPushSubscriptions() {
 function createPushSubscription(id, endpoint, auth, p256dh) {
   return _exec(
     'run',
-    'INSERT OR REPLACE INTO push_subscriptions (id, endpoint, auth, p256dh) VALUES ($id, $endpoint, $auth, $p256dh)',
+    `INSERT OR REPLACE INTO push_subscriptions (
+      id, endpoint, auth, p256dh
+    ) VALUES ($id, $endpoint, $auth, $p256dh)`,
     {
       $id: id,
       $endpoint: endpoint,
