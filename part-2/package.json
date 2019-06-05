@@ -2,7 +2,8 @@
   "name": "chapter-4",
   "version": "1.0.0",
   "scripts": {
-    "serve": "node ./server.js"
+    "serve": "node ./server/server.js",
+    "generate-keys": "web-push generate-vapid-keys"
   },
   "dependencies": {
     "koa": "^2.7.0",
@@ -11,6 +12,7 @@
     "koa-router": "^7.4.0",
     "koa-static": "^5.0.0",
     "sqlite3": "^4.0.8",
-    "dayjs": "^1.8.14"
+    "dayjs": "^1.8.14",
+    "web-push": "^3.3.3"
   }
 }
