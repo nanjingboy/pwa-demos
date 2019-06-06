@@ -11,7 +11,7 @@ function setup() {
   return Promise.resolve();
 }
 
-async function push(data) {
+async function sendMessage(data) {
   const pushSubscriptions = await db.getPushSubscriptions();
   if (Array.isArray(pushSubscriptions)) {
     pushSubscriptions.forEach(pushSubscription => {
@@ -26,9 +26,9 @@ async function push(data) {
         JSON.stringify(data),
         { proxy: 'http://127.0.0.1:1087' }
       ).then(response => {
-        console.log(`\n Sent data to ${pushSubscription.id} successfully:`, JSON.stringify(data));
+        console.log('\nThe data send successfully:', JSON.stringify(data));
       }).catch(error => {
-        console.log(`\n Sent data to ${pushSubscription.id} failed:`, error);
+        console.log('\nThe data send failed:', error);
       });
     });
   }
@@ -36,5 +36,5 @@ async function push(data) {
 
 module.exports = {
   setup,
-  push,
+  sendMessage,
 }
