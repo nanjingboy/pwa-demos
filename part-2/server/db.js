@@ -34,7 +34,7 @@ function setup() {
     _exec(
       'run',
       `CREATE TABLE IF NOT EXISTS push_subscriptions (
-        id VARCHAR(100) UNIQUE NOT NULL,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         endpoint VARCHAR(100) NOT NULL,
         auth VARCHAR(100) NOT NULL,
         p256dh VARCHAR(100) NOT NULL
@@ -99,14 +99,13 @@ function getPushSubscriptions() {
   return _exec('all', 'SELECT * FROM push_subscriptions');
 }
 
-function createPushSubscription(id, endpoint, auth, p256dh) {
+function createPushSubscription(endpoint, auth, p256dh) {
   return _exec(
     'run',
-    `INSERT OR REPLACE INTO push_subscriptions (
-      id, endpoint, auth, p256dh
-    ) VALUES ($id, $endpoint, $auth, $p256dh)`,
+    `INSERT INTO push_subscriptions (
+      endpoint, auth, p256dh
+    ) VALUES ($endpoint, $auth, $p256dh)`,
     {
-      $id: id,
       $endpoint: endpoint,
       $auth: auth,
       $p256dh: p256dh
@@ -114,11 +113,15 @@ function createPushSubscription(id, endpoint, auth, p256dh) {
   );
 }
 
-function deletePushSubscription(id) {
+function deletePushSubscription(endpoint, auth, p256dh) {
   return _exec(
     'run',
-    'DELETE FROM push_subscriptions WHERE id=$id',
-    { $id: id }
+    'DELETE FROM push_subscriptions WHERE endpoint=$endpoint AND auth=$auth AND p256dh=$p256dh',
+    {
+      $endpoint: endpoint,
+      $auth: auth,
+      $p256dh: p256dh
+    }
   );
 }
 
