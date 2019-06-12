@@ -27,6 +27,14 @@ module.exports = {
       {
         test: /\.css$/,
         use: [ExtractCssChunks.loader, 'css-loader']
+      },
+      {
+        test: /\.html$/,
+        use: ['html-loader']
+      },
+      {
+        test: /\.(png|jpg)$/,
+        use: ['file-loader']
       }
     ]
   },
@@ -45,11 +53,11 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin(),
     new ExtractCssChunks({ filename: "[name].[chunkhash].css" }),
-    ...pageConfigs.html,
+    ...pageConfigs.html
   ],
   resolve: {
     alias: {
-      Common: path.resolve(__dirname, 'client/common/')
+      '@': path.resolve(__dirname, 'client')
     }
   }
 };

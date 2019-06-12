@@ -1,0 +1,31 @@
+.side-action {
+  display: none;
+}
+
+.container > .detail {
+  padding: 16px 16px 0 16px;
+  background: white;
+}
+
+.container > .detail > .title {
+  font-size: 30px;
+  font-weight: 700;
+  color: #2f2f2f;
+}
+
+.container > .detail > .content {
+  font-size: 16px;
+  color: #2f2f2f;
+  margin-top: 8px;
+}
+
+.container > .detail > .times {
+  display: flex;
+}
+
+.container > .detail > .times > div {
+  font-size: 13px;
+  color: #b1b1b1;
+  margin-top: 8px;
+  margin-right: 8px;
+}

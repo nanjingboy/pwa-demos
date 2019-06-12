@@ -1,4 +1,10 @@
-import { print } from 'Common';
-import 'Common/index.css';
+import '@/common/global.css';
+import './styles.css';
 
-print('编辑页');
+window.addEventListener('load', () => {
+  const { pathname } = window.location;
+  if (/^\/edit\/\d+$/.test(pathname)) {
+    window.currentRecordId = pathname.match(/(\d+)/)[0];
+    document.querySelector('.container > .actions > .delete').style.display = 'block';
+  }
+});

@@ -1,0 +1,48 @@
+.container > .input {
+  padding: 5px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.container > .input > input {
+  font-size: 14px;
+  height: 40px;
+  width: 100%;
+}
+
+.container > .input > textarea {
+  font-size: 14px;
+  min-height: 80px;
+  width: 100%;
+}
+
+.container > .actions {
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.container > .actions > button {
+  height: 32px;
+  padding: 0 15px;
+  color: white;
+  font-size: 15px;
+  border-radius: 4px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.container > .actions > button:focus {
+  outline: none;
+}
+
+.container > .actions > .save {
+  background: #4A789D;
+  border: 1px solid #4A789D;
+  margin-right: 16px;
+}
+
+.container > .actions > .delete {
+  display: none;
+  background: #ff4d4f;
+  border: 1px solid #ff4d4f;
+}
