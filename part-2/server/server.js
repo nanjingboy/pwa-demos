@@ -14,6 +14,10 @@ const router = new Router();
 router.post('/subscribe', async ctx => {
   const { endpoint, keys: { auth, p256dh } } = ctx.request.body;
   await db.createPushSubscription(endpoint, auth, p256dh);
+  push.sendMessageWithSubscription(
+    { type: 'subscribe', message: '感谢订阅^_^' },
+    { endpoint, keys: { auth, p256dh } }
+  );
   ctx.body = { status: true };
 }).delete('/subscribe', async ctx => {
   const { endpoint, keys: { auth, p256dh } } = ctx.request.body;
@@ -26,8 +30,8 @@ router.get('/articles', async ctx => {
 }).get('/articles/:id', async ctx => {
   ctx.body = await db.getArticle(ctx.params.id);
 }).post('/articles', async ctx => {
-  const { title, tag, content } = ctx.request.body;
-  const id = await db.createArticle(title, tag, content);
+  const { title, content } = ctx.request.body;
+  const id = await db.createArticle(title, content);
   push.sendMessage({
     type: 'article',
     method: 'create',
@@ -36,8 +40,8 @@ router.get('/articles', async ctx => {
   });
   ctx.body = { status: true };
 }).put('/articles/:id', async ctx => {
-  const { title, tag, content } = ctx.request.body;
-  await db.updateArticle(ctx.params.id, title, tag, content);
+  const { title, content } = ctx.request.body;
+  await db.updateArticle(ctx.params.id, title, content);
   push.sendMessage({
     type: 'article',
     method: 'update',

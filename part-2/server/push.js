@@ -15,26 +15,34 @@ async function sendMessage(data) {
   const pushSubscriptions = await db.getPushSubscriptions();
   if (Array.isArray(pushSubscriptions)) {
     pushSubscriptions.forEach(pushSubscription => {
-      webpush.sendNotification(
+      sendMessageWithSubscription(
+        data,
         {
           endpoint: pushSubscription.endpoint,
           keys: {
             auth: pushSubscription.auth,
             p256dh: pushSubscription.p256dh,
           }
-        },
-        JSON.stringify(data),
-        { proxy: 'http://127.0.0.1:1087' }
-      ).then(response => {
-        console.log('\nThe data send successfully:', JSON.stringify(data));
-      }).catch(error => {
-        console.log('\nThe data send failed:', error);
-      });
+        }
+      );
     });
   }
+}
+
+function sendMessageWithSubscription(data, subscription) {
+  webpush.sendNotification(
+    subscription,
+    JSON.stringify(data),
+    { proxy: 'http://127.0.0.1:1087' }
+  ).then(response => {
+    console.log('\nThe data send successfully:', JSON.stringify(data));
+  }).catch(error => {
+    console.log('\nThe data send failed:', error);
+  });
 }
 
 module.exports = {
   setup,
   sendMessage,
+  sendMessageWithSubscription
 }

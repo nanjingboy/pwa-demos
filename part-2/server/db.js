@@ -1,6 +1,7 @@
+const path = require('path');
 const dayjs = require('dayjs');
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database(':memory:');
+const db = new sqlite3.Database(path.join(__dirname, 'data.db'));
 
 function _exec(fn, sql, params) {
   return new Promise((resolve, reject) => {
@@ -24,8 +25,7 @@ function setup() {
       'run',
       `CREATE TABLE IF NOT EXISTS articles (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title VARCHAR(100) NOT NULL,
-        tag VARCHAR(100) NOT NULL,
+        title VARCHAR(100) UNIQUE NOT NULL,
         content TEXT NOT NULL,
         created_at DATETIME NOT NULL,
         updated_at DATETIME NOT NULL
@@ -44,23 +44,22 @@ function setup() {
 }
 
 function getArticles() {
-  return _exec('all', 'SELECT * FROM articles');
+  return _exec('all', 'SELECT * FROM articles ORDER BY updated_at DESC');
 }
 
 function getArticle(id) {
   return _exec('get', 'SELECT * FROM articles WHERE id=$id', { $id: id });
 }
 
-function createArticle(title, tag, content) {
+function createArticle(title, content) {
   const now = dayjs().format('YYYY-MM-DD HH:mm:ss');
   return _exec(
     'run',
-    `INSERT INTO articles (
-      title, tag, content, created_at, updated_at
-    ) VALUES ($title, $tag, $content, $createdAt, $updatedAt)`,
+    `INSERT OR REPLACE INTO articles (
+      title, content, created_at, updated_at
+    ) VALUES ($title, $content, $createdAt, $updatedAt)`,
     {
       $title: title,
-      $tag: tag,
       $content: content,
       $createdAt: now,
       $updatedAt: now
@@ -68,18 +67,16 @@ function createArticle(title, tag, content) {
   );
 }
 
-function updateArticle(id, title, tag, content) {
+function updateArticle(id, title, content) {
   return _exec(
     'run',
     `UPDATE articles SET
       title=$title,
-      tag=$tag,
       content=$content,
       updated_at=$updatedAt
       WHERE id=$id`,
     {
       $id: id,
-      $tag: tag,
       $title: title,
       $content: content,
       $updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
