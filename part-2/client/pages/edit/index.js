@@ -1,4 +1,4 @@
-import '@/common/global.css';
+import '@/global/index.css';
 import './styles.css';
 
 window.addEventListener('load', () => {

@@ -1,5 +1,5 @@
-import { initPullToRefresh, showMessage } from '@/common/global';
-import '@/common/global.css';
+import { initPullToRefresh, showMessage } from '@/global';
+import '@/global/index.css';
 import './styles.css';
 
 window.onListItemClicked = function(id) {

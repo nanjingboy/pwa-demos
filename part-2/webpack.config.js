@@ -10,7 +10,7 @@ const pageConfigs = glob.sync('./client/pages/*').reduce((result, item) => {
   result.html.push(new HtmlWebpackPlugin({
     filename: `${basename}.html`,
     template: `./client/pages/${basename}/index.html`,
-    chunks:[basename, 'common']
+    chunks:[basename, 'global']
   }));
   return result;
 }, { entry: {}, html: [] });
@@ -41,9 +41,9 @@ module.exports = {
   optimization: {
     splitChunks: {
       cacheGroups: {
-        common: {
-          test: /common/,
-          name: 'common',
+        global: {
+          test: /global/,
+          name: 'global',
           chunks: 'initial',
           minSize: 0
         }
