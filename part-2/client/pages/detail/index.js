@@ -1,4 +1,4 @@
-import { initPullToRefresh, initSW, showMessage } from '@/global';
+import { initPullToRefresh, initSW, renderEmpty } from '@/global';
 import '@/global/index.css';
 import './styles.css';
 
@@ -18,7 +18,7 @@ function render(data) {
       window.location.href = `/edit/${window.currentRecordId}`;
     });
   } else {
-    showMessage('暂无任何数据');
+    renderEmpty();
   }
 }
 

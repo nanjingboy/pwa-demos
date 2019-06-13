@@ -10,12 +10,8 @@ export function initPullToRefresh(onRefresh) {
   });
 };
 
-export function showMessage(message) {
-  let html = '';
-  if (typeof message === 'string' && message.trim().length > 0) {
-    html = `<div class="message">${message}</div>`
-  }
-  document.querySelector('.container').innerHTML = html;
+export function renderEmpty() {
+  document.querySelector('.container').innerHTML = '<div class="message">暂无任何数据</div>';
 };
 
 export function initSW() {
