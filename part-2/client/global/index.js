@@ -17,3 +17,9 @@ export function showMessage(message) {
   }
   document.querySelector('.container').innerHTML = html;
 };
+
+export function initSW() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+}

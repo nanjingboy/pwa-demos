@@ -3,6 +3,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const ExtractCssChunks = require("extract-css-chunks-webpack-plugin");
+const SWFilePlugin = require('./webpack/SWFilePlugin');
 
 const pageConfigs = glob.sync('./client/pages/*').reduce((result, item) => {
   const basename = path.basename(item);
@@ -20,7 +21,8 @@ module.exports = {
   mode: process.env.NODE_ENV || 'development',
   output: {
     filename: '[name].[chunkhash].js',
-    path: path.resolve(__dirname, 'public')
+    path: path.resolve(__dirname, 'public'),
+    publicPath: '/'
   },
   module: {
     rules: [
@@ -53,7 +55,8 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin(),
     new ExtractCssChunks({ filename: "[name].[chunkhash].css" }),
-    ...pageConfigs.html
+    ...pageConfigs.html,
+    new SWFilePlugin()
   ],
   resolve: {
     alias: {

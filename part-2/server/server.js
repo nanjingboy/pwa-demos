@@ -59,6 +59,10 @@ router.get('/articles', async ctx => {
   ctx.body = { status: true };
 });
 
+router.get('/sw.js', async ctx => {
+  await send(ctx, 'public/sw.js', { maxage: 0 });
+});
+
 router.get('/create', async ctx => {
   await send(ctx, 'public/edit.html');
 });

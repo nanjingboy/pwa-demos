@@ -1,4 +1,4 @@
-import { initPullToRefresh, showMessage } from '@/global';
+import { initPullToRefresh, initSW, showMessage } from '@/global';
 import '@/global/index.css';
 import './styles.css';
 
@@ -23,6 +23,7 @@ function render(data) {
 }
 
 window.addEventListener('load', () => {
+  initSW();
   window.currentRecordId = window.location.pathname.match(/(\d+)/)[0];
   setTimeout(() => {
     render({
