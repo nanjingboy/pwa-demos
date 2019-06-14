@@ -9,14 +9,13 @@ function parseNavigateCacheKey(url) {
   if (/^\/create|\/edit\/\d+$/.test(pathname)) {
     return '/edit.html';
   }
-
   if (/^\/detail\/\d+$/.test(pathname)) {
     return '/detail.html';
   }
   return pathname;
 }
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(precacheName);
     await cache.addAll(precacheList);
@@ -46,7 +45,6 @@ self.addEventListener('fetch', event => {
       cacheKey = event.request.url;
       preloadFetch = Promise.resolve(undefined);
     }
-
     const cachedResponse = await caches.match(cacheKey);
     if (cachedResponse) {
       return cachedResponse;
