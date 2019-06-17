@@ -1,5 +1,6 @@
 const glob = require('glob');
 const path = require('path');
+const CopyPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const ExtractCssChunks = require("extract-css-chunks-webpack-plugin");
@@ -56,6 +57,10 @@ module.exports = {
     new CleanWebpackPlugin(),
     new ExtractCssChunks({ filename: "[name].[chunkhash].css" }),
     ...pageConfigs.html,
+    new CopyPlugin([
+      { from: path.join(__dirname, 'client/manifest.json'), to: path.join(__dirname, 'public') },
+      { from: path.join(__dirname, 'client/launcher-icon.png'), to: path.join(__dirname, 'public') }
+    ]),
     new SWFilePlugin()
   ],
   resolve: {
