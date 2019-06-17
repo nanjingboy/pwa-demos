@@ -1,4 +1,4 @@
-import { initPullToRefresh, initSW, renderEmpty } from '@/global';
+import { initPullToRefresh, initSW, initAppInstall, renderEmpty } from '@/global';
 import '@/global/index.css';
 import './styles.css';
 
@@ -24,6 +24,7 @@ function render(data) {
 
 window.addEventListener('load', () => {
   initSW();
+  initAppInstall();
   window.currentRecordId = window.location.pathname.match(/(\d+)/)[0];
   setTimeout(() => {
     render({

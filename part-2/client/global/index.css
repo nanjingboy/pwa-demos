@@ -29,6 +29,10 @@ body {
   text-decoration: underline;
 }
 
+.header > .action-install-app {
+  display: none;
+}
+
 .container {
   flex: auto;
   overflow-y: auto;

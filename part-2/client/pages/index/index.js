@@ -1,4 +1,4 @@
-import { initPullToRefresh, initSW, renderEmpty } from '@/global';
+import { initPullToRefresh, initSW, initAppInstall, renderEmpty } from '@/global';
 import '@/global/index.css';
 import './styles.css';
 
@@ -27,6 +27,7 @@ function render(data) {
 
 window.addEventListener('load', () => {
   initSW();
+  initAppInstall();
   setTimeout(() => {
     render([
       {

@@ -19,3 +19,30 @@ export function initSW() {
     navigator.serviceWorker.register('/sw.js');
   }
 }
+
+export function initAppInstall() {
+  let appPromptEvent = null;
+  let installBtn = document.querySelector('.header > .action-install-app');
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault();
+    appPromptEvent = event;
+    installBtn.style.display = 'block';
+    return false;
+  });
+  installBtn.addEventListener('click', () => {
+    if (appPromptEvent !== null) {
+      appPromptEvent.prompt();
+      appPromptEvent.userChoice.then(result => {
+        if (result.outcome === 'accepted') {
+          console.log('同意安装');
+        } else {
+          console.log('拒绝安装');
+        }
+        appPromptEvent = null;
+      });
+    }
+  });
+  window.addEventListener('appinstalled', () => {
+    installBtn.style.display = 'none';
+  });
+}
