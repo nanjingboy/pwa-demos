@@ -51,7 +51,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.method.toLowerCase() === 'get') {
     event.respondWith((async () => {
-      const { response: cachedResponse } = await matchCache(event.request.url);
+      const { response: cachedResponse } = await matchCache(event.request.url) || {};
       if (cachedResponse) {
         return cachedResponse;
       }
