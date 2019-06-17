@@ -3,11 +3,10 @@ const memFs = require('mem-fs');
 const editor = require("mem-fs-editor");
 
 class SWFilePlugin {
-  constructor(options) {
-    const defaultOptions = {
+  constructor() {
+    this.options = {
       precacheName: `precache-${(new Date()).getTime()}`
     };
-    this.options = Object.assign(defaultOptions, options || {});
   }
 
   apply(compiler) {

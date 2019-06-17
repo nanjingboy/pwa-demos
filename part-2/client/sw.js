@@ -1,18 +1,32 @@
 const precacheName = '<%= precacheName %>';
 const precacheList = <%- precacheList %>
 
-function parseNavigateCacheKey(url) {
+async function matchPrecache(url) {
+  let cacheKey;
   const { pathname } = new URL(url, location);
   if (pathname === '/') {
-    return '/index.html';
+    cacheKey = '/index.html';
+  } else if (/^\/create|\/edit\/\d+$/.test(pathname)) {
+    cacheKey = '/edit.html';
+  } else if (/^\/detail\/\d+$/.test(pathname)) {
+    cacheKey = '/detail.html';
+  } else {
+    cacheKey = pathname;
   }
-  if (/^\/create|\/edit\/\d+$/.test(pathname)) {
-    return '/edit.html';
+
+  if (precacheList.includes(cacheKey)) {
+    const cache = await caches.open(precacheName);
+    return {
+      type: 'precache',
+      response: await cache.match(cacheKey)
+    };
   }
-  if (/^\/detail\/\d+$/.test(pathname)) {
-    return '/detail.html';
-  }
-  return pathname;
+
+  return null;
+}
+
+async function matchCache(url) {
+  return await matchPrecache(url);
 }
 
 self.addEventListener('install', event => {
@@ -35,24 +49,17 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  event.respondWith((async () => {
-    let cacheKey
-    let preloadFetch
-    if (event.request.mode === 'navigate') {
-      cacheKey = parseNavigateCacheKey(event.request.url);
-      preloadFetch = event.preloadResponse;
-    } else {
-      cacheKey = event.request.url;
-      preloadFetch = Promise.resolve(undefined);
-    }
-    const cachedResponse = await caches.match(cacheKey);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    const preloadResponse = await preloadFetch;
-    if (preloadResponse) {
-      return preloadResponse;
-    }
-    return await fetch(event.request.clone());
-  })());
+  if (event.request.method.toLowerCase() === 'get') {
+    event.respondWith((async () => {
+      const { response: cachedResponse } = await matchCache(event.request.url);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      const preloadResponse = await event.preloadResponse;
+      if (preloadResponse) {
+        return preloadResponse;
+      }
+      return await fetch(event.request.clone());
+    })());
+  }
 });
