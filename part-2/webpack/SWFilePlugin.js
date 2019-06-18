@@ -11,13 +11,17 @@ class SWFilePlugin {
 
   apply(compiler) {
     compiler.hooks.emit.tapAsync('SWFilePlugin', (compilation, callback) => {
+      const publicPath = compilation.mainTemplate.getPublicPath({
+        hash: compilation.hash
+      });
+      const assets = Object.keys(compilation.assets).map(asset => `${publicPath}${asset}`);
       const fsEditor = editor.create(memFs.create());
       fsEditor.copyTpl(
         path.join(__dirname, '../client/sw.js'),
         path.join(__dirname, '../public/sw.js'),
         {
           precacheName: this.options.precacheName,
-          precacheList: JSON.stringify(Object.keys(compilation.assets).map(asset => `/${asset}`))
+          precacheList: JSON.stringify(assets)
         }
       );
       fsEditor.commit(() => {

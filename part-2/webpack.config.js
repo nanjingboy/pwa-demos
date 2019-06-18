@@ -6,13 +6,12 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const ExtractCssChunks = require("extract-css-chunks-webpack-plugin");
 const SWFilePlugin = require('./webpack/SWFilePlugin');
 
-const pageConfigs = glob.sync('./client/pages/*').reduce((result, item) => {
-  const basename = path.basename(item);
-  result.entry[basename] = `./client/pages/${basename}/index.js`;
+const pageConfigs = ['index', 'detail', 'edit'].reduce((result, item) => {
+  result.entry[item] = `./client/pages/${item}/index.js`;
   result.html.push(new HtmlWebpackPlugin({
-    filename: `${basename}.html`,
-    template: `./client/pages/${basename}/index.html`,
-    chunks:[basename, 'global']
+    filename: `${item}.html`,
+    template: `./client/pages/${item}/index.html`,
+    chunks:[item, 'global']
   }));
   return result;
 }, { entry: {}, html: [] });
