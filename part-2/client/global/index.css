@@ -29,7 +29,8 @@ body {
   text-decoration: underline;
 }
 
-.header > .action-install-app {
+.header > .action-install-app,
+.header > .action-unsubscribe {
   display: none;
 }
 

@@ -48,6 +48,23 @@ self.addEventListener('activate', event => {
   })());
 });
 
+self.addEventListener('push', event => {
+  const data = event.data.json();
+  const title = 'PWA 博文';
+  if (data.type === 'subscribe') {
+    event.waitUntil(
+      self.registration.showNotification(title, {
+        body: data.message,
+        icon: '/launcher-icon.png',
+      })
+    );
+  }
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+});
+
 self.addEventListener('fetch', event => {
   if (event.request.method.toLowerCase() === 'get') {
     event.respondWith((async () => {

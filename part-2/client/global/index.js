@@ -1,5 +1,45 @@
 import PullToRefresh from 'pulltorefreshjs';
 
+function urlB64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+async function getSubscription(registration) {
+  if ('PushManager' in window) {
+    let subscription = await registration.pushManager.getSubscription();
+    if (subscription) {
+      return subscription;
+    }
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlB64ToUint8Array(
+        'BLW2Nfw3ylyUdwNqAreIPYbemxnxQ7ZTZSIJIHxrgw_xOiUP9enenF5JIHX8KXY8BZpzuGN_0mCehb2XEqms3hg'
+      )
+    });
+    try {
+      await fetch('/subscribe', {
+        headers: {
+          'content-type': 'application/json'
+        },
+        method: 'POST',
+        body: JSON.stringify(subscription)
+      }).then(response => response.json());
+      return subscription;
+    } catch {
+      subscription.unsubscribe();
+      return null;
+    }
+  }
+  return null;
+}
+
 export function initPullToRefresh(onRefresh) {
   PullToRefresh.init({
     mainElement: '.container',
@@ -14,9 +54,26 @@ export function renderEmpty() {
   document.querySelector('.container').innerHTML = '<div class="message">暂无任何数据</div>';
 };
 
-export function initSW() {
+export async function initSW() {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
+    const registration = await navigator.serviceWorker.register('/sw.js');
+    const subscription = await getSubscription(registration);
+    if (subscription) {
+      const unsubscribeBtn = document.querySelector('.header > .action-unsubscribe');
+      unsubscribeBtn.style.display = 'block';
+      unsubscribeBtn.addEventListener('click', () => {
+        fetch('/subscribe', {
+          headers: {
+            'content-type': 'application/json'
+          },
+          method: 'DELETE',
+          body: JSON.stringify(subscription)
+        });
+        subscription.unsubscribe();
+        unsubscribeBtn.style.display = 'none';
+      });
+    }
+    return registration;
   }
 }
 
