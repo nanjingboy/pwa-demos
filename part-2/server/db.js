@@ -25,7 +25,7 @@ function setup() {
       'run',
       `CREATE TABLE IF NOT EXISTS articles (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title VARCHAR(100) UNIQUE NOT NULL,
+        title VARCHAR UNIQUE NOT NULL,
         content TEXT NOT NULL,
         created_at DATETIME NOT NULL,
         updated_at DATETIME NOT NULL
@@ -35,9 +35,9 @@ function setup() {
       'run',
       `CREATE TABLE IF NOT EXISTS push_subscriptions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        endpoint VARCHAR(100) NOT NULL,
-        auth VARCHAR(100) NOT NULL,
-        p256dh VARCHAR(100) NOT NULL
+        endpoint VARCHAR NOT NULL,
+        auth VARCHAR NOT NULL,
+        p256dh VARCHAR NOT NULL
       )`
     )
   ]);
