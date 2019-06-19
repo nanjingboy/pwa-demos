@@ -11,6 +11,13 @@ function urlB64ToUint8Array(base64String) {
   return outputArray;
 }
 
+async function registerSubscriptionSync(registration, tag, subscription) {
+  const key = `${tag}-${(new Date().getTime())}`;
+  const db = new BackgroundSyncDB();
+  await db.addSubscription(key, subscription);
+  await registration.sync.register(key);
+}
+
 async function getSubscription(registration) {
   if ('PushManager' in window) {
     let subscription = await registration.pushManager.getSubscription();
@@ -24,17 +31,15 @@ async function getSubscription(registration) {
       )
     });
     try {
-      await fetch('/subscribe', {
-        headers: {
-          'content-type': 'application/json'
-        },
-        method: 'POST',
-        body: JSON.stringify(subscription)
-      }).then(response => response.json());
+      if ('SyncManager' in window) {
+        await registerSubscriptionSync(registration, 'subscribe', subscription);
+      } else {
+        await Network.subscribe(subscription);
+      }
       return subscription;
-    } catch {
+    } catch (error) {
       subscription.unsubscribe();
-      return null;
+      throw error;
     }
   }
   return null;
@@ -56,21 +61,21 @@ export function renderEmpty() {
 
 export async function initSW() {
   if ('serviceWorker' in navigator) {
-    const registration = await navigator.serviceWorker.register('/sw.js');
+    const registration = await navigator.serviceWorker.register('/sw.js').then(
+      registration => navigator.serviceWorker.ready
+    );
     const subscription = await getSubscription(registration);
     if (subscription) {
       const unsubscribeBtn = document.querySelector('.header > .action-unsubscribe');
       unsubscribeBtn.style.display = 'block';
       unsubscribeBtn.addEventListener('click', () => {
-        fetch('/subscribe', {
-          headers: {
-            'content-type': 'application/json'
-          },
-          method: 'DELETE',
-          body: JSON.stringify(subscription)
-        });
         subscription.unsubscribe();
         unsubscribeBtn.style.display = 'none';
+        if ('SyncManager' in window) {
+          registerSubscriptionSync(registration, 'unsubscribe', subscription);
+        } else {
+          Network.unsubscribe(subscription);
+        }
       });
     }
     return registration;

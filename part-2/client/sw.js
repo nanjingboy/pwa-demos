@@ -1,5 +1,7 @@
+importScripts(...<%- importScripts %>);
+
 const precacheName = '<%= precacheName %>';
-const precacheList = <%- precacheList %>
+const precacheList = <%- precacheList %>;
 
 async function matchPrecache(url) {
   let cacheKey;
@@ -63,6 +65,25 @@ self.addEventListener('push', event => {
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
+});
+
+self.addEventListener('sync', event => {
+  const { tag } = event;
+  if (/^unsubscribe|subscribe\-\d+$/.test(tag)) {
+    event.waitUntil((async () => {
+      const db = new BackgroundSyncDB();
+      const result = await db.getSubscription(tag);
+      if (result) {
+        const { subscription } = result;
+        if (/^subscribe\-\d+$/.test(tag)) {
+          await Network.subscribe(subscription);
+        } else {
+          await Network.unsubscribe(subscription);
+        }
+        await db.deleteSubscription(tag);
+      }
+    })());
+  }
 });
 
 self.addEventListener('fetch', event => {

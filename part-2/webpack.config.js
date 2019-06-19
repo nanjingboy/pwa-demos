@@ -32,11 +32,21 @@ module.exports = {
       },
       {
         test: /\.html$/,
-        use: ['html-loader']
+        use: [{
+          loader: 'html-loader',
+          options: {
+            attrs: ['img:src', 'script:src']
+          }
+        }]
       },
       {
-        test: /\.(png|jpg)$/,
-        use: ['file-loader']
+        test: /\.(png|jpg)|(db|network)\.js$/,
+        use: [{
+          loader: 'file-loader',
+          options: {
+            name: '[name].[hash].[ext]'
+          }
+        }]
       }
     ]
   },

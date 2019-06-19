@@ -15,13 +15,17 @@ class SWFilePlugin {
         hash: compilation.hash
       });
       const assets = Object.keys(compilation.assets).map(asset => `${publicPath}${asset}`);
+      const importScripts = assets.filter(
+        asset => /^\/db|network\.[a-zA-Z0-9]+\.js$/.test(asset)
+      );
       const fsEditor = editor.create(memFs.create());
       fsEditor.copyTpl(
         path.join(__dirname, '../client/sw.js'),
         path.join(__dirname, '../public/sw.js'),
         {
           precacheName: this.options.precacheName,
-          precacheList: JSON.stringify(assets)
+          precacheList: JSON.stringify(assets),
+          importScripts: JSON.stringify(importScripts)
         }
       );
       fsEditor.commit(() => {
