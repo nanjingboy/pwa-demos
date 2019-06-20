@@ -3516,11 +3516,6 @@ public-encrypt@^4.0.0:
     randombytes "^2.0.1"
     safe-buffer "^5.1.2"
 
-pulltorefreshjs@^0.1.17:
-  version "0.1.17"
-  resolved "http://r.cnpmjs.org/pulltorefreshjs/download/pulltorefreshjs-0.1.17.tgz#cc39faae17acd57a0888fba65aaafded09c681cf"
-  integrity sha1-zDn6rhes1XoIiPumWqr97QnGgc8=
-
 pump@^2.0.0:
   version "2.0.1"
   resolved "http://r.cnpmjs.org/pump/download/pump-2.0.1.tgz#12399add6e4cf7526d973cbc8b5ce2e2908b3909"

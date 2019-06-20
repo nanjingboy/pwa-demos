@@ -1,5 +1,3 @@
-import PullToRefresh from 'pulltorefreshjs';
-
 function urlB64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
@@ -44,16 +42,6 @@ export async function registerSync(registration, tag, value) {
   await db.add(key, value);
   await registration.sync.register(key);
 }
-
-export function initPullToRefresh(onRefresh) {
-  PullToRefresh.init({
-    mainElement: '.container',
-    instructionsPullToRefresh: '下拉刷新',
-    instructionsReleaseToRefresh: '释放刷新',
-    instructionsRefreshing: '加载中',
-    onRefresh,
-  });
-};
 
 export function renderEmpty() {
   document.querySelector('.container').innerHTML = '<div class="message">暂无任何数据</div>';

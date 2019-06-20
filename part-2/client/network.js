@@ -1,51 +1,58 @@
+function fetchWrapper(url, options) {
+  return fetch(url, {
+    ...options,
+    headers: {
+      'content-type': 'application/json'
+    }
+  }).then(async response => {
+    if (response.status === 204) {
+      return null;
+    }
+    return await response.json();
+  })
+}
+
 const Network = {
   subscribe(subscription) {
-    return fetch('/subscribe', {
-      headers: {
-        'content-type': 'application/json'
-      },
+    return fetchWrapper('/subscribe', {
       method: 'POST',
       body: JSON.stringify(subscription)
-    }).then(response => response.json());
+    });
   },
 
   unsubscribe(subscription) {
-    return fetch('/subscribe', {
-      headers: {
-        'content-type': 'application/json'
-      },
+    return fetchWrapper('/subscribe', {
       method: 'DELETE',
       body: JSON.stringify(subscription)
-    }).then(response => response.json());
+    });
+  },
+
+  getArticles() {
+    return fetchWrapper('/articles');
+  },
+
+  getArticle(id) {
+    return fetchWrapper(`/articles/${id}`);
   },
 
   saveArticle(article) {
     const { id } = article;
     if (id) {
-      return fetch(`/articles/${id}`, {
-        headers: {
-          'content-type': 'application/json'
-        },
+      return fetchWrapper(`/articles/${id}`, {
         method: 'PUT',
         body: JSON.stringify(article)
-      }).then(response => response.json());
+      });
     }
 
-    return fetch('/articles', {
-      headers: {
-        'content-type': 'application/json'
-      },
+    return fetchWrapper('/articles', {
       method: 'POST',
       body: JSON.stringify(article)
-    }).then(response => response.json());
+    });
   },
 
   deleteArticle(data) {
     return fetch(`/articles/${data.id}`, {
-      headers: {
-        'content-type': 'application/json'
-      },
       method: 'DELETE',
-    }).then(response => response.json());
+    });
   }
 }

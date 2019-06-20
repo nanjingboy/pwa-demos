@@ -11,6 +11,8 @@ toastr.options = {
   extendedTimeOut: 0
 };
 
+let currentRecordId = null;
+
 function onSave(callback) {
   const title = document.querySelector('.container > .input > .title').value.trim();
   const content = document.querySelector('.container > .input > .content').value.trim();
@@ -44,8 +46,8 @@ window.addEventListener('load', () => {
     document.querySelector('.container > .actions > .save').addEventListener('click', () => {
       onSave((title, content) => {
         const data = {
-          id: window.currentRecordId,
-          key: window.currentRecordId ? null : (new Date()).getTime(),
+          id: currentRecordId,
+          key: currentRecordId ? null : (new Date()).getTime(),
           title,
           content
         };
@@ -62,7 +64,7 @@ window.addEventListener('load', () => {
     });
 
     document.querySelector('.container > .actions > .delete').addEventListener('click', () => {
-      const data = { id: window.currentRecordId };
+      const data = { id: currentRecordId };
       if ('SyncManager' in window) {
         registerSync(registration, 'deleteArticle', data);
       } else {
@@ -77,7 +79,13 @@ window.addEventListener('load', () => {
   initAppInstall();
   const { pathname } = window.location;
   if (/^\/edit\/\d+$/.test(pathname)) {
-    window.currentRecordId = pathname.match(/(\d+)/)[0];
+    currentRecordId = pathname.match(/(\d+)/)[0];
     document.querySelector('.container > .actions > .delete').style.display = 'block';
+    Network.getArticle(currentRecordId).then(response => {
+      if (response) {
+        document.querySelector('.container > .input > .title').value = response.title;
+        document.querySelector('.container > .input > .content').value = response.content;
+      }
+    });
   }
 });

@@ -1,4 +1,4 @@
-import { initPullToRefresh, initSW, initAppInstall, renderEmpty } from '@/global';
+import { initSW, initAppInstall, renderEmpty } from '@/global';
 import '@/global/index.css';
 import './styles.css';
 
@@ -28,35 +28,7 @@ function render(data) {
 window.addEventListener('load', () => {
   initSW();
   initAppInstall();
-  setTimeout(() => {
-    render([
-      {
-        id: 1,
-        title: '文章标题',
-        content: '文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容。',
-        created_at: '2019-06-01 12:00:00',
-        updated_at: '2019-06-01 12:00:00',
-      },
-      {
-        id: 2,
-        title: '文章标题',
-        content: '文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容。',
-        created_at: '2019-06-01 12:00:00',
-        updated_at: '2019-06-01 12:00:00',
-      },
-      {
-        id: 3,
-        title: '文章标题',
-        content: '文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容。',
-        created_at: '2019-06-01 12:00:00',
-        updated_at: '2019-06-01 12:00:00',
-      }
-    ]);
-    initPullToRefresh(() => {
-      console.log('hello world');
-    });
-  }, 1000);
-
+  Network.getArticles().then(response => render(response));
   document.querySelector('.side-action').addEventListener('click', () => {
     window.location.href = '/create';
   });

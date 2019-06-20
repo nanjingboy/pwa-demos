@@ -1,6 +1,8 @@
-import { initPullToRefresh, initSW, initAppInstall, renderEmpty } from '@/global';
+import { initSW, initAppInstall, renderEmpty } from '@/global';
 import '@/global/index.css';
 import './styles.css';
+
+let currentRecordId = null;
 
 function render(data) {
   if (data) {
@@ -15,7 +17,7 @@ function render(data) {
     const sideActionEl = document.querySelector('.side-action');
     sideActionEl.style.display = 'block';
     sideActionEl.addEventListener('click', () => {
-      window.location.href = `/edit/${window.currentRecordId}`;
+      window.location.href = `/edit/${currentRecordId}`;
     });
   } else {
     renderEmpty();
@@ -25,16 +27,6 @@ function render(data) {
 window.addEventListener('load', () => {
   initSW();
   initAppInstall();
-  window.currentRecordId = window.location.pathname.match(/(\d+)/)[0];
-  setTimeout(() => {
-    render({
-      title: '文章标题',
-      content: '文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容文章内容。',
-      created_at: '2019-06-01 12:00:00',
-      updated_at: '2019-06-01 12:00:00',
-    });
-    initPullToRefresh(() => {
-      console.log('hello world');
-    });
-  }, 1000);
+  currentRecordId = window.location.pathname.match(/(\d+)/)[0];
+  Network.getArticle(currentRecordId).then(response => render(response));
 });
