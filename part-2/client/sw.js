@@ -31,6 +31,13 @@ async function matchCache(url) {
   return await matchPrecache(url);
 }
 
+async function postMessage(message) {
+  const clients = await self.clients.matchAll();
+  if (clients && clients.length > 0) {
+    clients.forEach(client => client.postMessage(message));
+  }
+}
+
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(precacheName);
@@ -53,9 +60,10 @@ self.addEventListener('activate', event => {
 self.addEventListener('push', event => {
   const data = event.data.json();
   const title = 'PWA 博文';
-  if (data.type === 'subscribe') {
+  if (data.type === 'subscribe' || data.type === 'article') {
     event.waitUntil(
       self.registration.showNotification(title, {
+        data,
         body: data.message,
         icon: '/launcher-icon.png',
       })
@@ -65,24 +73,33 @@ self.addEventListener('push', event => {
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
+  const { notification: { data } } = event;
+  if (data.type === 'article' && data.id) {
+    self.clients.openWindow(`/detail/${data.id}`);
+  }
 });
 
 self.addEventListener('sync', event => {
   const { tag } = event;
-  if (/^unsubscribe|subscribe\-\d+$/.test(tag)) {
-    event.waitUntil((async () => {
-      const db = new BackgroundSyncDB();
+  event.waitUntil((async () => {
+    const db = new BackgroundSyncDB();
+    if (!event.lastChance) {
       const result = await db.get(tag);
       if (result) {
-        if (/^subscribe\-\d+$/.test(tag)) {
-          await Network.subscribe(result.value);
-        } else {
-          await Network.unsubscribe(result.value);
+        const type = tag.replace(/\-\d+$/g, '');
+        if (typeof Network[type] === 'function') {
+          try {
+            await Network[type](result.value);
+            postMessage({ type, status: true });
+          } catch (error) {
+            postMessage({ type, status: false });
+            throw error;
+          }
         }
-        await db.delete(tag);
       }
-    })());
-  }
+    }
+    await db.delete(tag);
+  })());
 });
 
 self.addEventListener('fetch', event => {

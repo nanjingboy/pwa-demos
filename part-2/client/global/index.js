@@ -11,13 +11,6 @@ function urlB64ToUint8Array(base64String) {
   return outputArray;
 }
 
-async function registerSubscriptionSync(registration, tag, subscription) {
-  const key = `${tag}-${(new Date().getTime())}`;
-  const db = new BackgroundSyncDB();
-  await db.add(key, subscription);
-  await registration.sync.register(key);
-}
-
 async function getSubscription(registration) {
   if ('PushManager' in window) {
     let subscription = await registration.pushManager.getSubscription();
@@ -32,7 +25,7 @@ async function getSubscription(registration) {
     });
     try {
       if ('SyncManager' in window) {
-        await registerSubscriptionSync(registration, 'subscribe', subscription);
+        await registerSync(registration, 'subscribe', subscription);
       } else {
         await Network.subscribe(subscription);
       }
@@ -43,6 +36,13 @@ async function getSubscription(registration) {
     }
   }
   return null;
+}
+
+export async function registerSync(registration, tag, value) {
+  const key = `${tag}-${(new Date().getTime())}`;
+  const db = new BackgroundSyncDB();
+  await db.add(key, value);
+  await registration.sync.register(key);
 }
 
 export function initPullToRefresh(onRefresh) {
@@ -61,9 +61,7 @@ export function renderEmpty() {
 
 export async function initSW() {
   if ('serviceWorker' in navigator) {
-    const registration = await navigator.serviceWorker.register('/sw.js').then(
-      registration => navigator.serviceWorker.ready
-    );
+    const registration = await navigator.serviceWorker.register('/sw.js');
     const subscription = await getSubscription(registration);
     if (subscription) {
       const unsubscribeBtn = document.querySelector('.header > .action-unsubscribe');
@@ -72,7 +70,7 @@ export async function initSW() {
         subscription.unsubscribe();
         unsubscribeBtn.style.display = 'none';
         if ('SyncManager' in window) {
-          registerSubscriptionSync(registration, 'unsubscribe', subscription);
+          registerSync(registration, 'unsubscribe', subscription);
         } else {
           Network.unsubscribe(subscription);
         }

@@ -25,7 +25,8 @@ function setup() {
       'run',
       `CREATE TABLE IF NOT EXISTS articles (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title VARCHAR UNIQUE NOT NULL,
+        key VARCHAR UNIQUE NOT NULL,
+        title VARCHAR NOT NULL,
         content TEXT NOT NULL,
         created_at DATETIME NOT NULL,
         updated_at DATETIME NOT NULL
@@ -51,14 +52,24 @@ function getArticle(id) {
   return _exec('get', 'SELECT * FROM articles WHERE id=$id', { $id: id });
 }
 
-function createArticle(title, content) {
+async function isArticleExists(key) {
+  const { count } = await _exec(
+    'get',
+    'SELECT COUNT(key) AS count FROM articles WHERE key=$key',
+    { $key: key }
+  );
+  return count > 0;
+}
+
+function createArticle(key, title, content) {
   const now = dayjs().format('YYYY-MM-DD HH:mm:ss');
   return _exec(
     'run',
-    `INSERT OR REPLACE INTO articles (
-      title, content, created_at, updated_at
-    ) VALUES ($title, $content, $createdAt, $updatedAt)`,
+    `INSERT INTO articles (
+      key, title, content, created_at, updated_at
+    ) VALUES ($key, $title, $content, $createdAt, $updatedAt)`,
     {
+      $key: key,
       $title: title,
       $content: content,
       $createdAt: now,
@@ -129,6 +140,7 @@ module.exports = {
   createArticle,
   updateArticle,
   deleteArticle,
+  isArticleExists,
   getPushSubscriptions,
   createPushSubscription,
   deletePushSubscription,

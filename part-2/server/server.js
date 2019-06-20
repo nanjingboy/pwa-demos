@@ -30,32 +30,36 @@ router.get('/articles', async ctx => {
 }).get('/articles/:id', async ctx => {
   ctx.body = await db.getArticle(ctx.params.id);
 }).post('/articles', async ctx => {
-  const { title, content } = ctx.request.body;
-  const id = await db.createArticle(title, content);
-  push.sendMessage({
-    type: 'article',
-    method: 'create',
-    content: `新增文章：${title}`,
-    id
-  });
+  const { key, title, content } = ctx.request.body;
+  const isArticleExists = await db.isArticleExists(key);
+  if (!isArticleExists) {
+    const id = await db.createArticle(key, title, content);
+    push.sendMessage({
+      type: 'article',
+      message: `新增文章：${title}`,
+      id
+    });
+  }
   ctx.body = { status: true };
 }).put('/articles/:id', async ctx => {
+  const id = ctx.params.id;
   const { title, content } = ctx.request.body;
-  await db.updateArticle(ctx.params.id, title, content);
+  await db.updateArticle(id, title, content);
   push.sendMessage({
     type: 'article',
-    method: 'update',
-    content: `更新文章：${title}`,
+    message: `更新文章：${title}`,
     id
   });
   ctx.body = { status: true };
 }).delete('/articles/:id', async ctx => {
-  await db.deleteArticle(ctx.params.id);
-  push.sendMessage({
-    type: 'article',
-    method: 'delete',
-    content: `删除文章：${title}`
-  });
+  const article = await db.getArticle(ctx.params.id);
+  if (article) {
+    await db.deleteArticle(article.id);
+    push.sendMessage({
+      type: 'article',
+      message: `删除文章：${article.title}`
+    });
+  }
   ctx.body = { status: true };
 });
 
