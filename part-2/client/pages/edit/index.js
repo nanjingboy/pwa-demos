@@ -11,6 +11,7 @@ toastr.options = {
   extendedTimeOut: 0
 };
 
+let isOnline = true;
 let currentRecordId = null;
 
 function onSave(callback) {
@@ -35,6 +36,16 @@ function onArticleResponse(status) {
   }
 }
 
+function showOfflineTip() {
+  if (isOnline) {
+    return;
+  }
+  toastr.info('当前网络不可用，请求已加入后台同步序列');
+}
+
+window.addEventListener('online', () => isOnline = true);
+window.addEventListener('offline', () => isOnline = false);
+
 window.addEventListener('load', () => {
   initSW().then(registration => {
     navigator.serviceWorker.addEventListener('message', event => {
@@ -53,6 +64,7 @@ window.addEventListener('load', () => {
         };
         if ('SyncManager' in window) {
           registerSync(registration, 'saveArticle', data);
+          showOfflineTip();
         } else {
           Network.saveArticle(data).then(() => {
             onArticleResponse(true);
@@ -67,6 +79,7 @@ window.addEventListener('load', () => {
       const data = { id: currentRecordId };
       if ('SyncManager' in window) {
         registerSync(registration, 'deleteArticle', data);
+        showOfflineTip();
       } else {
         Network.deleteArticle(data).then(() => {
           onArticleResponse(true);
