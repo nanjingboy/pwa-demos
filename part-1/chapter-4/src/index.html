@@ -23,8 +23,6 @@
       });
       if ('serviceWorker' in navigator && 'SyncManager' in window) {
         navigator.serviceWorker.register('./sw.js').then(function(registration) {
-          return navigator.serviceWorker.ready;
-        }).then(function(registration) {
           document.getElementById('submit').addEventListener('click', function() {
             ui.submit(function(name) {
               db.addTodo(name).then(function() {
