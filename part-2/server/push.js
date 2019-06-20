@@ -1,4 +1,3 @@
-
 const db = require('./db');
 const webpush = require('web-push');
 
