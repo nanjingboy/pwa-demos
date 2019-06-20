@@ -55,23 +55,23 @@ class BackgroundSyncDB extends DB {
   constructor() {
     super('BackgroundSync', 1, event => {
       const db = event.target.result;
-      const objectStore = db.createObjectStore('subscriptions', { keyPath: 'tag' });
+      const objectStore = db.createObjectStore('BackgroundSync', { keyPath: 'tag' });
       objectStore.createIndex('tag', 'tag', { unique: true });
     });
   }
 
-  addSubscription(tag, subscription) {
-    return this.write('add', 'subscriptions', {
+  add(tag, value) {
+    return this.write('add', 'BackgroundSync', {
       tag,
-      subscription: JSON.parse(JSON.stringify(subscription))
+      value: JSON.parse(JSON.stringify(value))
     });
   }
 
-  getSubscription(tag) {
-    return this.read('get', 'subscriptions', tag);
+  get(tag) {
+    return this.read('get', 'BackgroundSync', tag);
   }
 
-  deleteSubscription(tag) {
-    return this.write('delete', 'subscriptions', tag);
+  delete(tag) {
+    return this.write('delete', 'BackgroundSync', tag);
   }
 }

@@ -72,15 +72,14 @@ self.addEventListener('sync', event => {
   if (/^unsubscribe|subscribe\-\d+$/.test(tag)) {
     event.waitUntil((async () => {
       const db = new BackgroundSyncDB();
-      const result = await db.getSubscription(tag);
+      const result = await db.get(tag);
       if (result) {
-        const { subscription } = result;
         if (/^subscribe\-\d+$/.test(tag)) {
-          await Network.subscribe(subscription);
+          await Network.subscribe(result.value);
         } else {
-          await Network.unsubscribe(subscription);
+          await Network.unsubscribe(result.value);
         }
-        await db.deleteSubscription(tag);
+        await db.delete(tag);
       }
     })());
   }

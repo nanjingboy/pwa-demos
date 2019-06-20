@@ -14,7 +14,7 @@ function urlB64ToUint8Array(base64String) {
 async function registerSubscriptionSync(registration, tag, subscription) {
   const key = `${tag}-${(new Date().getTime())}`;
   const db = new BackgroundSyncDB();
-  await db.addSubscription(key, subscription);
+  await db.add(key, subscription);
   await registration.sync.register(key);
 }
 
