@@ -4,6 +4,9 @@ const runtimeCacheName = 'runtime-cache';
 const precacheName = '<%= precacheName %>';
 const precacheList = <%- precacheList %>;
 
+const precacheExpirationDB = new CacheExpirationDB(precacheName);
+const runtimeCacheExpirationDB = new CacheExpirationDB(runtimeCacheName);
+
 async function getCache(cacheName, cacheKey) {
   const cache = await caches.open(cacheName);
   return await cache.match(cacheKey);
@@ -12,6 +15,19 @@ async function getCache(cacheName, cacheKey) {
 async function setCache(cacheName, cacheKey, value) {
   const cache = await caches.open(cacheName);
   await cache.put(cacheKey, value);
+
+  let db;
+  let minTimestamp;
+  if (cacheName === precacheName) {
+    db = precacheExpirationDB;
+    minTimestamp = Date.now() - 60 * 60 * 24 * 7 * 1000; // 1 week
+  } else {
+    db = runtimeCacheExpirationDB;
+    minTimestamp = Date.now() - 60 * 60 * 24 * 1000; // 1 day
+  }
+  await db.update(cacheKey, minTimestamp);
+  const deletedKeys = await db.expireEntries(minTimestamp);
+  deletedKeys.forEach(async deletedKey =>  await cache.delete(deletedKey));
 }
 
 async function postMessage(message) {
@@ -24,18 +40,18 @@ async function postMessage(message) {
 async function fetchArticles(request) {
   const networkTimeoutPromise = new Promise(resolve => {
     setTimeout(async () => {
-      resolve(await getCache(runtimeCacheName, 'articles'))
+      resolve(await getCache(runtimeCacheName, '/articles'))
     }, 3000);
   });
   const networkPromise = (async () => {
     try {
       const response = await fetch(request.clone());
       if (response) {
-        await setCache(runtimeCacheName, 'articles', response.clone());
+        await setCache(runtimeCacheName, '/articles', response.clone());
       }
       return response;
     } catch {
-      return await getCache(runtimeCacheName, 'articles');
+      return await getCache(runtimeCacheName, '/articles');
     }
   })();
   return await Promise.race([networkPromise, networkTimeoutPromise]);
@@ -43,7 +59,7 @@ async function fetchArticles(request) {
 
 async function fetchArticle(request) {
   let articles = [];
-  const cachedResponse = await getCache(runtimeCacheName, 'articles');
+  const cachedResponse = await getCache(runtimeCacheName, '/articles');
   if (cachedResponse) {
     try {
       articles = await cachedResponse.json();
@@ -82,7 +98,7 @@ async function fetchArticle(request) {
     }
     await setCache(
       runtimeCacheName,
-      'articles',
+      '/articles',
       new Response(
         new Blob([JSON.stringify(articles)], { type : 'application/json' }),
         {
@@ -113,13 +129,26 @@ async function fetchAssets(event) {
     return cachedResponse;
   }
 
-  return await event.preloadResponse;
+  const preloadResponse = await event.preloadResponse;
+  if (preloadResponse) {
+    await setCache(precacheName, cacheKey, preloadResponse.clone());
+    return preloadResponse;
+  }
+
+  const networkResponse = await fetch(cacheKey);
+  if (networkResponse) {
+    await setCache(precacheName, cacheKey, networkResponse.clone());
+  }
+  return networkResponse;
 }
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(precacheName);
     await cache.addAll(precacheList);
+    precacheList.forEach(async precacheItem => (
+      await precacheExpirationDB.update(precacheItem, Date.now())
+    ));
   })());
 });
 
@@ -130,8 +159,11 @@ self.addEventListener('activate', event => {
     }
     const cacheNames = await caches.keys();
     cacheNames.filter(
-      cacheName => ![precacheName, runtimeCacheName].includes(cacheName)
-    ).forEach(async cacheName => await caches.delete(cacheName));
+      cacheName => cacheName !== precacheName && /^precache\-\d+$/.test(cacheName)
+    ).forEach(async cacheName => {
+      await caches.delete(cacheName);
+      await (new CacheExpirationDB(cacheName)).expireEntries(Infinity);
+    });
   })());
 });
 

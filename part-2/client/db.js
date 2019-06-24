@@ -75,3 +75,62 @@ class BackgroundSyncDB extends DB {
     return this.write('delete', 'BackgroundSync', tag);
   }
 }
+
+class CacheExpirationDB extends DB {
+  constructor(cacheName) {
+    super('CacheExpiration', 1, event => {
+      const db = event.target.result;
+      const objStore = db.createObjectStore('CacheExpiration', { keyPath: 'id' });
+      objStore.createIndex('timestamp', 'timestamp', { unique: false });
+    });
+    this._cacheName = cacheName;
+  }
+
+  async update(url, timestamp) {
+    return await this.write('put', 'CacheExpiration', {
+      id: this._getId(url),
+      cacheName: this._cacheName,
+      url: this._normalizeURL(url),
+      timestamp
+    })
+  }
+
+  async expireEntries(minTimestamp) {
+    const entriesToDelete = await this._transaction(
+      'CacheExpiration', 'readonly', (transaction, done) => {
+        const entriesToDelete = [];
+        const store = transaction.objectStore('CacheExpiration');
+        const result = store.index('timestamp').openCursor(null, 'prev');
+        result.onsuccess = ({ target }) => {
+          const cursor = target.result;
+          if (cursor) {
+            const record = cursor.value;
+            if (record.cacheName === this._cacheName && record.timestamp < minTimestamp) {
+              entriesToDelete.push(record);
+            }
+            cursor.continue();
+          } else {
+            done(entriesToDelete);
+          }
+        };
+      }
+    );
+
+    const urlsDeleted = [];
+    entriesToDelete.forEach(async entry => {
+      await this.write('delete', 'CacheExpiration', entry.id);
+      urlsDeleted.push(entry.url);
+    });
+    return urlsDeleted;
+  }
+
+  _normalizeURL(baseUrl) {
+    const url = new URL(baseUrl, location);
+    url.hash = '';
+    return url.pathname;
+  }
+
+  _getId(url) {
+    return `${this._cacheName}|${this._normalizeURL(url)}`;
+  }
+}
