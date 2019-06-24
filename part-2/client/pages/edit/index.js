@@ -11,7 +11,6 @@ toastr.options = {
   extendedTimeOut: 0
 };
 
-let isOnline = true;
 let currentRecordId = null;
 
 function onSave(callback) {
@@ -37,14 +36,11 @@ function onArticleResponse(status) {
 }
 
 function showOfflineTip() {
-  if (isOnline) {
+  if (navigator.onLine) {
     return;
   }
   toastr.info('当前网络不可用，请求已加入后台同步序列');
 }
-
-window.addEventListener('online', () => isOnline = true);
-window.addEventListener('offline', () => isOnline = false);
 
 window.addEventListener('load', () => {
   initSW().then(registration => {
