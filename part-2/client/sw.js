@@ -4,8 +4,21 @@ const runtimeCacheName = 'runtime-cache';
 const precacheName = '<%= precacheName %>';
 const precacheList = <%- precacheList %>;
 
-const precacheExpirationDB = new CacheExpirationDB(precacheName);
-const runtimeCacheExpirationDB = new CacheExpirationDB(runtimeCacheName);
+const maxAgeSeconds = {
+  [precacheName]: 60 * 60 * 24 * 7 * 1000, // 1 week
+  [runtimeCacheName]: 60 * 60 * 24 * 1000 // 1 day
+};
+
+async function updateCacheExpirations(cacheName, cacheKey = null) {
+  const db = new CacheExpirationDB(cacheName);
+  const minTimestamp = Date.now() - maxAgeSeconds[cacheName];
+  if (cacheKey) {
+    await db.update(cacheKey, minTimestamp);
+  }
+  const deletedKeys = await db.expireEntries(minTimestamp);
+  const cache = await cache.open(cacheName);
+  deletedKeys.forEach(async deletedKey =>  await cache.delete(deletedKey));
+}
 
 async function getCache(cacheName, cacheKey) {
   const cache = await caches.open(cacheName);
@@ -14,20 +27,16 @@ async function getCache(cacheName, cacheKey) {
 
 async function setCache(cacheName, cacheKey, value) {
   const cache = await caches.open(cacheName);
-  await cache.put(cacheKey, value);
-
-  let db;
-  let minTimestamp;
-  if (cacheName === precacheName) {
-    db = precacheExpirationDB;
-    minTimestamp = Date.now() - 60 * 60 * 24 * 7 * 1000; // 1 week
-  } else {
-    db = runtimeCacheExpirationDB;
-    minTimestamp = Date.now() - 60 * 60 * 24 * 1000; // 1 day
+  try {
+    await cache.put(cacheKey, value);
+  } catch (error) {
+    if (error.name === 'QuotaExceededError') {
+      await updateCacheExpirations(precacheName);
+      await updateCacheExpirations(runtimeCacheName);
+    }
+    throw error;
   }
-  await db.update(cacheKey, minTimestamp);
-  const deletedKeys = await db.expireEntries(minTimestamp);
-  deletedKeys.forEach(async deletedKey =>  await cache.delete(deletedKey));
+  await updateCacheExpirations(cacheName, cacheKey);
 }
 
 async function postMessage(message) {
@@ -146,6 +155,8 @@ self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(precacheName);
     await cache.addAll(precacheList);
+
+    const precacheExpirationDB = new CacheExpirationDB(precacheName);
     precacheList.forEach(async precacheItem => (
       await precacheExpirationDB.update(precacheItem, Date.now())
     ));
