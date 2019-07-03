@@ -4,14 +4,23 @@ const CopyPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const ExtractCssChunks = require("extract-css-chunks-webpack-plugin");
-const SWFilePlugin = require('./webpack/SWFilePlugin');
+const { ShellPlugin, SWFilePlugin } = require('./webpack/plugins');
 
-const pageConfigs = ['index', 'detail', 'edit'].reduce((result, item) => {
-  result.entry[item] = `./client/pages/${item}/index.js`;
+const pageConfigs = [
+  { key: 'home', isEnableGoHomeLink: false, isShowEditAction: false, isShowPlusAction: true },
+  { key: 'detail', isEnableGoHomeLink: true, isShowEditAction: true, isShowPlusAction: false },
+  { key: 'edit', isEnableGoHomeLink: true, isShowEditAction: false, isShowPlusAction: false },
+].reduce((result, { key, isEnableGoHomeLink, isShowEditAction, isShowPlusAction }) => {
+  result.entry[key] = `./client/${key}/index.js`;
   result.html.push(new HtmlWebpackPlugin({
-    filename: `${item}.html`,
-    template: `./client/pages/${item}/index.html`,
-    chunks:[item, 'global']
+    filename: `${key}.html`,
+    template: './client/index.ejs',
+    chunks: [key, 'global'],
+    templateParameters: {
+      isEnableGoHomeLink,
+      isShowPlusAction,
+      isShowEditAction
+    }
   }));
   return result;
 }, { entry: {}, html: [] });
@@ -29,24 +38,6 @@ module.exports = {
       {
         test: /\.css$/,
         use: [ExtractCssChunks.loader, 'css-loader']
-      },
-      {
-        test: /\.html$/,
-        use: [{
-          loader: 'html-loader',
-          options: {
-            attrs: ['img:src', 'script:src']
-          }
-        }]
-      },
-      {
-        test: /\.(png|jpg)|(db|network)\.js$/,
-        use: [{
-          loader: 'file-loader',
-          options: {
-            name: '[name].[hash].[ext]'
-          }
-        }]
       }
     ]
   },
@@ -66,6 +57,7 @@ module.exports = {
     new CleanWebpackPlugin(),
     new ExtractCssChunks({ filename: "[name].[chunkhash].css" }),
     ...pageConfigs.html,
+    new ShellPlugin(),
     new CopyPlugin([
       { from: path.join(__dirname, 'client/manifest.json'), to: path.join(__dirname, 'public') },
       { from: path.join(__dirname, 'client/launcher-icon.png'), to: path.join(__dirname, 'public') }
@@ -76,5 +68,8 @@ module.exports = {
     alias: {
       '@': path.resolve(__dirname, 'client')
     }
+  },
+  resolveLoader: {
+    modules: [path.join(__dirname, 'webpack/loaders'), 'node_modules']
   }
 };

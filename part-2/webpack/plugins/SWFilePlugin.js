@@ -3,12 +3,6 @@ const memFs = require('mem-fs');
 const editor = require("mem-fs-editor");
 
 class SWFilePlugin {
-  constructor() {
-    this.options = {
-      precacheName: `precache-${(new Date()).getTime()}`
-    };
-  }
-
   apply(compiler) {
     compiler.hooks.emit.tapAsync('SWFilePlugin', (compilation, callback) => {
       const publicPath = compilation.mainTemplate.getPublicPath({
@@ -20,10 +14,10 @@ class SWFilePlugin {
       );
       const fsEditor = editor.create(memFs.create());
       fsEditor.copyTpl(
-        path.join(__dirname, '../client/sw.js'),
-        path.join(__dirname, '../public/sw.js'),
+        path.join(__dirname, '../../client/sw.js'),
+        path.join(__dirname, '../../public/sw.js'),
         {
-          precacheName: this.options.precacheName,
+          precacheName: `precache-${(new Date()).getTime()}`,
           precacheList: JSON.stringify(assets),
           importScripts: JSON.stringify(importScripts)
         }

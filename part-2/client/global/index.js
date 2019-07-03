@@ -43,10 +43,6 @@ export async function registerSync(registration, tag, value) {
   await registration.sync.register(key);
 }
 
-export function renderEmpty() {
-  document.querySelector('.container').innerHTML = '<div class="message">暂无任何数据</div>';
-};
-
 export async function initSW() {
   if ('serviceWorker' in navigator) {
     const registration = await navigator.serviceWorker.register('/sw.js');

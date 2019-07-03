@@ -27,14 +27,6 @@ const Network = {
     });
   },
 
-  getArticles() {
-    return fetchWrapper('/articles');
-  },
-
-  getArticle(id) {
-    return fetchWrapper(`/articles/${id}`);
-  },
-
   saveArticle(article) {
     const { id } = article;
     if (id) {

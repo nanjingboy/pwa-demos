@@ -17,7 +17,9 @@ async function updateCacheExpirations(cacheName, cacheKey = null) {
   }
   const deletedKeys = await db.expireEntries(minTimestamp);
   const cache = await cache.open(cacheName);
-  deletedKeys.forEach(async deletedKey =>  await cache.delete(deletedKey));
+  for (const deletedKey of deletedKeys) {
+    await cache.delete(deletedKey);
+  }
 }
 
 async function getCache(cacheName, cacheKey) {
@@ -155,11 +157,10 @@ self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(precacheName);
     await cache.addAll(precacheList);
-
     const precacheExpirationDB = new CacheExpirationDB(precacheName);
-    precacheList.forEach(async precacheItem => (
-      await precacheExpirationDB.update(precacheItem, Date.now())
-    ));
+    for (const precacheItem of precacheList) {
+      await precacheExpirationDB.update(precacheItem, Date.now());
+    }
   })());
 });
 
@@ -169,12 +170,12 @@ self.addEventListener('activate', event => {
       await self.registration.navigationPreload.enable();
     }
     const cacheNames = await caches.keys();
-    cacheNames.filter(
-      cacheName => cacheName !== precacheName && /^precache\-\d+$/.test(cacheName)
-    ).forEach(async cacheName => {
-      await caches.delete(cacheName);
-      await (new CacheExpirationDB(cacheName)).expireEntries(Infinity);
-    });
+    for (const cacheName of cacheNames) {
+      if (cacheName !== precacheName && /^precache\-\d+$/.test(cacheName)) {
+        await caches.delete(cacheName);
+        await (new CacheExpirationDB(cacheName)).expireEntries(Infinity);
+      }
+    }
   })());
 });
 

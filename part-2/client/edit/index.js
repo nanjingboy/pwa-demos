@@ -89,12 +89,5 @@ window.addEventListener('load', () => {
   const { pathname } = window.location;
   if (/^\/edit\/\d+$/.test(pathname)) {
     currentRecordId = pathname.match(/(\d+)/)[0];
-    document.querySelector('.container > .actions > .delete').style.display = 'block';
-    Network.getArticle(currentRecordId).then(response => {
-      if (response) {
-        document.querySelector('.container > .input > .title').value = response.title;
-        document.querySelector('.container > .input > .content').value = response.content;
-      }
-    });
   }
 });
