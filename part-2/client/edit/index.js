@@ -43,6 +43,10 @@ function showOfflineTip() {
 }
 
 window.addEventListener('load', () => {
+  const { pathname } = window.location;
+  if (/^\/edit\/\d+$/.test(pathname)) {
+    currentRecordId = pathname.match(/(\d+)/)[0];
+  }
   initSW().then(registration => {
     navigator.serviceWorker.addEventListener('message', event => {
       const { type, status } = event.data;
@@ -70,24 +74,21 @@ window.addEventListener('load', () => {
         }
       });
     });
-
-    document.querySelector('.container > .actions > .delete').addEventListener('click', () => {
-      const data = { id: currentRecordId };
-      if ('SyncManager' in window) {
-        registerSync(registration, 'deleteArticle', data);
-        showOfflineTip();
-      } else {
-        Network.deleteArticle(data).then(() => {
-          onArticleResponse(true);
-        }).catch(() => {
-          onArticleResponse(false);
-        });
-      }
-    });
+    if (currentRecordId) {
+      document.querySelector('.container > .actions > .delete').addEventListener('click', () => {
+        const data = { id: currentRecordId };
+        if ('SyncManager' in window) {
+          registerSync(registration, 'deleteArticle', data);
+          showOfflineTip();
+        } else {
+          Network.deleteArticle(data).then(() => {
+            onArticleResponse(true);
+          }).catch(() => {
+            onArticleResponse(false);
+          });
+        }
+      });
+    }
   });
   initAppInstall();
-  const { pathname } = window.location;
-  if (/^\/edit\/\d+$/.test(pathname)) {
-    currentRecordId = pathname.match(/(\d+)/)[0];
-  }
 });

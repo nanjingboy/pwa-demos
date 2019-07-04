@@ -48,102 +48,10 @@ async function postMessage(message) {
   }
 }
 
-async function fetchArticles(request) {
-  const networkTimeoutPromise = new Promise(resolve => {
-    setTimeout(async () => {
-      resolve(await getCache(runtimeCacheName, '/articles'))
-    }, 3000);
-  });
-  const networkPromise = (async () => {
-    try {
-      const response = await fetch(request.clone());
-      if (response) {
-        await setCache(runtimeCacheName, '/articles', response.clone());
-      }
-      return response;
-    } catch {
-      return await getCache(runtimeCacheName, '/articles');
-    }
-  })();
-  return await Promise.race([networkPromise, networkTimeoutPromise]);
-}
-
-async function fetchArticle(request) {
-  let articles = [];
-  const cachedResponse = await getCache(runtimeCacheName, '/articles');
-  if (cachedResponse) {
-    try {
-      articles = await cachedResponse.json();
-      if (Array.isArray(articles) && articles.length > 0) {
-        const id = request.url.match(/(\d+)$/)[0];
-        const article = articles.find(article => parseInt(article.id, 10) === parseInt(id, 10));
-        if (article) {
-          return new Response(
-            new Blob([JSON.stringify(article)], { type : 'application/json' }),
-            {
-              status: 200,
-              statusText: 'OK'
-            }
-          );
-        }
-      }
-    } catch {
-    }
-  }
-
-  const response = await fetch(request.clone());
-  if (response.status === 200) {
-    articles.push(await response.clone().json());
-    if (articles.length > 1) {
-      articles.sort((a, b) => {
-        const keyA = new Date(a.updated_at);
-        const keyB = new Date(b.updated_at);
-        if (keyA > keyB) {
-          return -1;
-        }
-        if (keyA < keyB) {
-          return 1;
-        }
-        return 0;
-      });
-    }
-    await setCache(
-      runtimeCacheName,
-      '/articles',
-      new Response(
-        new Blob([JSON.stringify(articles)], { type : 'application/json' }),
-        {
-          status: 200,
-          statusText: 'OK'
-        }
-      )
-    );
-  }
-  return response;
-}
-
-async function fetchAssets(event) {
-  let cacheKey;
-  const { pathname } = new URL(event.request.url, location);
-  if (pathname === '/') {
-    cacheKey = '/index.html';
-  } else if (/^\/create|\/edit\/\d+$/.test(pathname)) {
-    cacheKey = '/edit.html';
-  } else if (/^\/detail\/\d+$/.test(pathname)) {
-    cacheKey = '/detail.html';
-  } else {
-    cacheKey = pathname;
-  }
-
+async function fetchAssets(cacheKey) {
   const cachedResponse = await getCache(precacheName, cacheKey);
   if (cachedResponse) {
     return cachedResponse;
-  }
-
-  const preloadResponse = await event.preloadResponse;
-  if (preloadResponse) {
-    await setCache(precacheName, cacheKey, preloadResponse.clone());
-    return preloadResponse;
   }
 
   const networkResponse = await fetch(cacheKey);
@@ -151,6 +59,87 @@ async function fetchAssets(event) {
     await setCache(precacheName, cacheKey, networkResponse.clone());
   }
   return networkResponse;
+}
+
+async function fetchPageContent(cacheKey) {
+  const networkTimeoutPromise = new Promise(resolve => {
+    setTimeout(async () => {
+      resolve(await getCache(runtimeCacheName, cacheKey))
+    }, 3000);
+  });
+
+  const networkPromise = (async () => {
+    try {
+      const response = await fetch(cacheKey, {
+        headers: {
+          'only_content': 1
+        }
+      });
+      if (response) {
+        await setCache(runtimeCacheName, cacheKey, response.clone());
+      }
+      return response;
+    } catch {
+      return await getCache(runtimeCacheName, cacheKey);
+    }
+  })();
+  return await Promise.race([networkPromise, networkTimeoutPromise]);
+}
+
+function fetchPage(cacheKey) {
+  let shellType;
+  if (cacheKey === '/') {
+    shellType = 'home';
+  } else if (/^\/create|\/edit\/\d+$/.test(cacheKey)) {
+    shellType = 'edit';
+  } else if (/^\/detail\/\d+$/.test(cacheKey)) {
+    shellType = 'detail';
+  }
+
+  const stream = new ReadableStream({
+    start(controller) {
+      const topFetch = getCache(precacheName, `/shell/${shellType}_top.html`);
+      const contentFetch = fetchPageContent(cacheKey);
+      const bottomFetch = getCache(precacheName, `/shell/${shellType}_bottom.html`);
+
+      function pushStream(stream) {
+        const reader = stream.getReader();
+        function read() {
+          return reader.read().then(result => {
+            if (result.done) {
+              return;
+            }
+            controller.enqueue(result.value);
+            return read();
+          });
+        }
+        return read();
+      }
+
+      (async () => {
+        const top = await getCache(precacheName, `/shell/${shellType}_top.html`);
+        await pushStream(top.body);
+
+        const content = await fetchPageContent(cacheKey);
+        if (content) {
+          await pushStream(content.body);
+        } else {
+          const errorContent = new Response(
+            '<div class="message">网络错误</div>',
+            { headers: { 'Content-Type': 'text/html' } }
+          );
+          await pushStream(errorContent.body)
+        }
+        const bottom = await getCache(precacheName, `/shell/${shellType}_bottom.html`);
+        await pushStream(bottom.body);
+        controller.close();
+      })();
+    }
+  });
+
+  return new Response(stream, {
+    headers: { 'Content-Type': 'text/html' }
+  });
 }
 
 self.addEventListener('install', event => {
@@ -166,9 +155,6 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
-    if (self.registration.navigationPreload) {
-      await self.registration.navigationPreload.enable();
-    }
     const cacheNames = await caches.keys();
     for (const cacheName of cacheNames) {
       if (cacheName !== precacheName && /^precache\-\d+$/.test(cacheName)) {
@@ -228,15 +214,11 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   if (request.method.toLowerCase() === 'get') {
     event.respondWith((async () => {
-      if (/\/articles\/?$/.test(request.url)) {
-        return await fetchArticles(request);
+      const cacheKey = new URL(request.url, location).pathname;
+      if (precacheList.includes(cacheKey)) {
+        return await fetchAssets(cacheKey);
       }
-
-      if (/\/articles\/\d+\/?$/.test(request.url)) {
-        return await fetchArticle(request);
-      }
-
-      return await fetchAssets(event);
+      return fetchPage(cacheKey);
     })());
   }
 });
