@@ -1,6 +1,6 @@
 const path = require('path');
 const memFs = require('mem-fs');
-const editor = require("mem-fs-editor");
+const editor = require('mem-fs-editor');
 
 class SWFilePlugin {
   apply(compiler) {
