@@ -98,10 +98,6 @@ function fetchPage(cacheKey) {
 
   const stream = new ReadableStream({
     start(controller) {
-      const topFetch = getCache(precacheName, `/shell/${shellType}_top.html`);
-      const contentFetch = fetchPageContent(cacheKey);
-      const bottomFetch = getCache(precacheName, `/shell/${shellType}_bottom.html`);
-
       function pushStream(stream) {
         const reader = stream.getReader();
         function read() {
