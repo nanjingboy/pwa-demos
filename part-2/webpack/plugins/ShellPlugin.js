@@ -4,7 +4,7 @@ const editor = require("mem-fs-editor");
 
 class ShellPlugin {
   constructor() {
-    this.htmls = []
+    this.htmls = [];
   }
 
   apply(compiler) {
