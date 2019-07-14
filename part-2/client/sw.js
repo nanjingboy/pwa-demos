@@ -124,7 +124,7 @@ function fetchPage(cacheKey) {
             '<div class="message">网络错误</div>',
             { headers: { 'Content-Type': 'text/html' } }
           );
-          await pushStream(errorContent.body)
+          await pushStream(errorContent.body);
         }
         const bottom = await getCache(precacheName, `/shell/${shellType}_bottom.html`);
         await pushStream(bottom.body);
