@@ -14,7 +14,8 @@ const app = new Koa();
 const router = new Router();
 
 async function renderPage(ctx, type, content) {
-  if (parseInt(ctx.request.headers['only_content'], 10) === 1) {
+  const { headers } = ctx.request;
+  if (parseInt(headers['only_content'], 10) === 1 || headers['service-worker-navigation-preload'] === 'true') {
     ctx.body = content;
   } else {
     const rootPath = path.join(__dirname, '../public/shell');

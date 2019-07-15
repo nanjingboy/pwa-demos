@@ -16,7 +16,7 @@ async function updateCacheExpirations(cacheName, cacheKey = null) {
     await db.update(cacheKey, minTimestamp);
   }
   const deletedKeys = await db.expireEntries(minTimestamp);
-  const cache = await cache.open(cacheName);
+  const cache = await caches.open(cacheName);
   for (const deletedKey of deletedKeys) {
     await cache.delete(deletedKey);
   }
@@ -61,13 +61,20 @@ async function fetchAssets(cacheKey) {
   return networkResponse;
 }
 
-async function fetchPageContent(cacheKey) {
+async function fetchPageContent(cacheKey, event) {
+  try {
+    const preloadResponse = await event.preloadResponse;
+    if (preloadResponse) {
+      await setCache(runtimeCacheName, cacheKey, preloadResponse.clone());
+      return preloadResponse;
+    }
+  } catch {
+  }
   const networkTimeoutPromise = new Promise(resolve => {
     setTimeout(async () => {
       resolve(await getCache(runtimeCacheName, cacheKey))
     }, 3000);
   });
-
   const networkPromise = (async () => {
     try {
       const response = await fetch(cacheKey, {
@@ -86,7 +93,7 @@ async function fetchPageContent(cacheKey) {
   return await Promise.race([networkPromise, networkTimeoutPromise]);
 }
 
-function fetchPage(cacheKey) {
+function fetchPage(cacheKey, event) {
   let shellType;
   if (cacheKey === '/') {
     shellType = 'home';
@@ -116,7 +123,7 @@ function fetchPage(cacheKey) {
         const top = await getCache(precacheName, `/shell/${shellType}_top.html`);
         await pushStream(top.body);
 
-        const content = await fetchPageContent(cacheKey);
+        const content = await fetchPageContent(cacheKey, event);
         if (content) {
           await pushStream(content.body);
         } else {
@@ -126,6 +133,7 @@ function fetchPage(cacheKey) {
           );
           await pushStream(errorContent.body);
         }
+
         const bottom = await getCache(precacheName, `/shell/${shellType}_bottom.html`);
         await pushStream(bottom.body);
         controller.close();
@@ -151,6 +159,9 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
+    if (self.registration.navigationPreload) {
+      await self.registration.navigationPreload.enable();
+    }
     const cacheNames = await caches.keys();
     for (const cacheName of cacheNames) {
       if (cacheName !== precacheName && /^precache\-\d+$/.test(cacheName)) {
@@ -214,7 +225,7 @@ self.addEventListener('fetch', event => {
       if (precacheList.includes(cacheKey)) {
         return await fetchAssets(cacheKey);
       }
-      return fetchPage(cacheKey);
+      return fetchPage(cacheKey, event);
     })());
   }
 });
