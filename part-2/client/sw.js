@@ -48,7 +48,7 @@ async function postMessage(message) {
   }
 }
 
-async function fetchAssets(cacheKey) {
+async function fetchAssets(cacheKey, event) {
   const cachedResponse = await getCache(precacheName, cacheKey);
   if (cachedResponse) {
     return cachedResponse;
@@ -56,7 +56,10 @@ async function fetchAssets(cacheKey) {
 
   const networkResponse = await fetch(cacheKey);
   if (networkResponse) {
-    await setCache(precacheName, cacheKey, networkResponse.clone());
+    const cloneResponse = networkResponse.clone();
+    event.waitUntil((async () => {
+      await setCache(precacheName, cacheKey, cloneResponse);
+    })());
   }
   return networkResponse;
 }
@@ -65,7 +68,10 @@ async function fetchPageContent(cacheKey, event) {
   try {
     const preloadResponse = await event.preloadResponse;
     if (preloadResponse) {
-      await setCache(runtimeCacheName, cacheKey, preloadResponse.clone());
+      const clonePreloadResponse = preloadResponse.clone();
+      event.waitUntil((async () => {
+        await setCache(runtimeCacheName, cacheKey, clonePreloadResponse);
+      })());
       return preloadResponse;
     }
   } catch {
@@ -83,7 +89,10 @@ async function fetchPageContent(cacheKey, event) {
         }
       });
       if (response) {
-        await setCache(runtimeCacheName, cacheKey, response.clone());
+        const cloneResponse = response.clone();
+        event.waitUntil((async () => {
+          await setCache(runtimeCacheName, cacheKey, cloneResponse);
+        })());
       }
       return response;
     } catch {
@@ -223,7 +232,7 @@ self.addEventListener('fetch', event => {
     event.respondWith((async () => {
       const cacheKey = new URL(request.url, location).pathname;
       if (precacheList.includes(cacheKey)) {
-        return await fetchAssets(cacheKey);
+        return await fetchAssets(cacheKey, event);
       }
       return fetchPage(cacheKey, event);
     })());
