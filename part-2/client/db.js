@@ -92,7 +92,7 @@ class CacheExpirationDB extends DB {
       cacheName: this._cacheName,
       url: this._normalizeURL(url),
       timestamp
-    })
+    });
   }
 
   async expireEntries(minTimestamp) {
@@ -117,10 +117,10 @@ class CacheExpirationDB extends DB {
     );
 
     const urlsDeleted = [];
-    entriesToDelete.forEach(async entry => {
+    for (const entry of entriesToDelete) {
       await this.write('delete', 'CacheExpiration', entry.id);
       urlsDeleted.push(entry.url);
-    });
+    }
     return urlsDeleted;
   }
 
