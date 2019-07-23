@@ -77,25 +77,29 @@ class BackgroundSyncDB extends DB {
 }
 
 class CacheExpirationDB extends DB {
-  constructor(cacheName) {
+  constructor(cacheName, maxAgeSeconds) {
     super('CacheExpiration', 1, event => {
       const db = event.target.result;
       const objStore = db.createObjectStore('CacheExpiration', { keyPath: 'id' });
       objStore.createIndex('timestamp', 'timestamp', { unique: false });
     });
     this._cacheName = cacheName;
+    this._maxAgeSeconds = maxAgeSeconds;
   }
 
-  async update(url, timestamp) {
-    return await this.write('put', 'CacheExpiration', {
+  async set(url, timestamp) {
+    const expireEntries = await this.expireEntries(timestamp);
+    await this.write('put', 'CacheExpiration', {
       id: this._getId(url),
       cacheName: this._cacheName,
       url: this._normalizeURL(url),
       timestamp
     });
+    return expireEntries;
   }
 
-  async expireEntries(minTimestamp) {
+  async expireEntries(timestamp) {
+    const minTimestamp = timestamp - this._maxAgeSeconds;
     const entriesToDelete = await this._transaction(
       'CacheExpiration', 'readonly', (transaction, done) => {
         const entriesToDelete = [];

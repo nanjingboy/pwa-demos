@@ -10,12 +10,13 @@ const maxAgeSeconds = {
 };
 
 async function updateCacheExpirations(cacheName, cacheKey = null) {
-  const db = new CacheExpirationDB(cacheName);
-  const minTimestamp = Date.now() - maxAgeSeconds[cacheName];
+  const db = new CacheExpirationDB(cacheName, maxAgeSeconds[cacheName]);
+  let deletedKeys;
   if (cacheKey) {
-    await db.update(cacheKey, minTimestamp);
+    deletedKeys = await db.set(cacheKey, Date.now());
+  } else {
+    deletedKeys = await db.expireEntries(Date.now());
   }
-  const deletedKeys = await db.expireEntries(minTimestamp);
   const cache = await caches.open(cacheName);
   for (const deletedKey of deletedKeys) {
     await cache.delete(deletedKey);
@@ -31,6 +32,7 @@ async function setCache(cacheName, cacheKey, value) {
   const cache = await caches.open(cacheName);
   try {
     await cache.put(cacheKey, value);
+    await updateCacheExpirations(cacheName, cacheKey);
   } catch (error) {
     if (error.name === 'QuotaExceededError') {
       await updateCacheExpirations(precacheName);
@@ -38,7 +40,6 @@ async function setCache(cacheName, cacheKey, value) {
     }
     throw error;
   }
-  await updateCacheExpirations(cacheName, cacheKey);
 }
 
 async function postMessage(message) {
@@ -159,9 +160,12 @@ self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(precacheName);
     await cache.addAll(precacheList);
-    const precacheExpirationDB = new CacheExpirationDB(precacheName);
+    const precacheExpirationDB = new CacheExpirationDB(
+      precacheName,
+      maxAgeSeconds[precacheName]
+    );
     for (const precacheItem of precacheList) {
-      await precacheExpirationDB.update(precacheItem, Date.now());
+      await precacheExpirationDB.set(precacheItem, Date.now());
     }
   })());
 });
@@ -175,7 +179,7 @@ self.addEventListener('activate', event => {
     for (const cacheName of cacheNames) {
       if (cacheName !== precacheName && /^precache\-\d+$/.test(cacheName)) {
         await caches.delete(cacheName);
-        await (new CacheExpirationDB(cacheName)).expireEntries(Infinity);
+        await (new CacheExpirationDB(cacheName, maxAgeSeconds[precacheName])).expireEntries(Infinity);
       }
     }
   })());
