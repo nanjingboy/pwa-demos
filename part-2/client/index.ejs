@@ -19,11 +19,11 @@
       <!-- shell -->
     </section>
     <% if (isShowPlusAction) { %>
-      <img class="side-action" src="<%= require('asset-loader!./home/plus.png') %>" />
+      <img class="side-action" src="<%= require('file-loader?name=[name].[hash].[ext]!./home/plus.png') %>" />
     <% } else if (isShowEditAction) { %>
-      <img class="side-action" src="<%= require('asset-loader!./detail/edit.png') %>" />
+      <img class="side-action" src="<%= require('file-loader?name=[name].[hash].[ext]!./detail/edit.png') %>" />
     <% } %>
-    <script type="text/javascript" src="<%= require('asset-loader!./db.js') %>"></script>
-    <script type="text/javascript" src="<%= require('asset-loader!./network.js') %>"></script>
+    <script type="text/javascript" src="<%= require('file-loader?name=[name].[hash].[ext]!./db.js') %>"></script>
+    <script type="text/javascript" src="<%= require('file-loader?name=[name].[hash].[ext]!./network.js') %>"></script>
   </body>
 </html>

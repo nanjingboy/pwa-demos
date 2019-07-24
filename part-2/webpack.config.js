@@ -67,8 +67,5 @@ module.exports = {
     alias: {
       '@': path.resolve(__dirname, 'client')
     }
-  },
-  resolveLoader: {
-    modules: [path.join(__dirname, 'webpack/loaders'), 'node_modules']
   }
 };
