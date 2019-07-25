@@ -1,15 +1,6 @@
-import { initSW, initAppInstall, registerSync } from '@/global';
-import toastr from 'toastr';
-import 'toastr/build/toastr.min.css';
+import { initSW, initAppInstall, registerSync, toast } from '@/global';
 import '@/global/index.css';
 import './styles.css';
-
-toastr.options = {
-  ...toastr.options,
-  positionClass: 'toast-bottom-center',
-  timeOut: 1000,
-  extendedTimeOut: 0
-};
 
 let currentRecordId = null;
 
@@ -17,7 +8,7 @@ function onSave(callback) {
   const title = document.querySelector('.container > .input > .title').value.trim();
   const content = document.querySelector('.container > .input > .content').value.trim();
   if (title.length === 0 || content.length === 0) {
-    toastr.error('标题与正文均不能为空');
+    toast('error', '标题与正文均不能为空');
   } else {
     callback(title, content);
   }
@@ -25,13 +16,13 @@ function onSave(callback) {
 
 function onArticleResponse(status) {
   if (status) {
-    toastr.options.onHidden = () => {
-      toastr.options.onHidden = null;
-      window.location.href = '/';
-    };
-    toastr.success('操作成功，稍后将自动跳转页面');
+    toast('success', '操作成功，稍后将自动跳转页面', {
+      onHidden: () => {
+        window.location.href = '/';
+      }
+    });
   } else {
-    toastr.error('操作失败');
+    toast('error', '操作失败');
   }
 }
 
@@ -39,7 +30,7 @@ function showOfflineTip() {
   if (navigator.onLine) {
     return;
   }
-  toastr.info('当前网络不可用，请求已加入后台同步序列');
+  toast('info', '当前网络不可用，请求已加入后台同步序列');
 }
 
 window.addEventListener('load', () => {

@@ -1,3 +1,26 @@
+import toastr from 'toastr';
+import 'toastr/build/toastr.min.css';
+
+const defaultToastOptions = {
+  ...toastr.options,
+  positionClass: 'toast-top-center',
+  timeOut: 1000,
+  extendedTimeOut: 0
+};
+
+function showSwUpdateTip(registration) {
+  toast(
+    'info',
+    '页面已更新，请点击此处进行更新',
+    {
+      timeOut: 0,
+      onHidden: () => {
+        registration.waiting.postMessage('skipWaiting');
+      }
+    }
+  );
+}
+
 function urlB64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
@@ -60,6 +83,26 @@ export async function initSW() {
         }
       });
     }
+
+    if (registration.waiting) {
+      showSwUpdateTip(registration);
+    }
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          showSwUpdateTip(registration);
+        }
+      });
+    });
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      toast('success', '页面更新完毕，即将刷新页面', {
+        onHidden: () => {
+          window.location.reload();
+        }
+      });
+    });
+
     return registration;
   }
 }
@@ -89,4 +132,10 @@ export function initAppInstall() {
   window.addEventListener('appinstalled', () => {
     installBtn.style.display = 'none';
   });
+}
+
+export function toast(type, message, options = {}) {
+  toastr.remove();
+  Object.assign(toastr.options, defaultToastOptions, options);
+  toastr[type](message);
 }
