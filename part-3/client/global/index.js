@@ -8,6 +8,13 @@ const defaultToastOptions = {
   extendedTimeOut: 0
 };
 
+export async function initSW() {
+  if ('serviceWorker' in navigator) {
+    const registration = await navigator.serviceWorker.register('/sw.js');
+    return registration;
+  }
+}
+
 export function toast(type, message, options = {}) {
   toastr.remove();
   Object.assign(toastr.options, defaultToastOptions, options);

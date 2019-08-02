@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const ExtractCssChunks = require("extract-css-chunks-webpack-plugin");
 const { ShellPlugin } = require('./webpack/plugins');
+const { GenerateSW } = require('workbox-webpack-plugin');
 
 const pageConfigs = [
   { key: 'home', isEnableGoHomeLink: false, isShowEditAction: false, isShowPlusAction: true },
@@ -60,7 +61,11 @@ module.exports = {
     new CopyPlugin([
       { from: path.join(__dirname, 'client/manifest.json'), to: path.join(__dirname, 'public') },
       { from: path.join(__dirname, 'client/launcher-icon.png'), to: path.join(__dirname, 'public') }
-    ])
+    ]),
+    new GenerateSW({
+      swDest: 'sw.js',
+      importWorkboxFrom: 'local'
+    })
   ],
   resolve: {
     alias: {

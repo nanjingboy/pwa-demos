@@ -1,4 +1,4 @@
-import { initSW, initAppInstall } from '@/global';
+import { initSW } from '@/global';
 import '@/global/index.css';
 import './styles.css';
 
@@ -7,4 +7,5 @@ window.addEventListener('load', () => {
   document.querySelector('.side-action').addEventListener('click', () => {
     window.location.href = `/edit/${currentRecordId}`;
   });
+  initSW();
 });

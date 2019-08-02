@@ -1,4 +1,4 @@
-import { toast } from '@/global';
+import { toast, initSW } from '@/global';
 import '@/global/index.css';
 import './styles.css';
 
@@ -56,4 +56,5 @@ window.addEventListener('load', () => {
       });
     });
   }
+  initSW();
 });

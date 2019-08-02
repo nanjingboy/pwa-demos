@@ -1,4 +1,4 @@
-import { initSW, initAppInstall } from '@/global';
+import { initSW } from '@/global';
 import '@/global/index.css';
 import './styles.css';
 
@@ -7,6 +7,7 @@ window.onListItemClicked = function(id) {
 }
 
 window.addEventListener('load', () => {
+  initSW();
   document.querySelector('.side-action').addEventListener('click', () => {
     window.location.href = '/create';
   });
