@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content= "width=device-width, user-scalable=no">
+    <link rel="manifest" href="/manifest.json">
+    <title>PWA 博文</title>
+  </head>
+  <body>
+    <header class="header">
+      <div class="title">PWA 博文</div>
+      <% if (isEnableGoHomeLink) { %>
+        <a class="action action-to-home" href="/">首页</a>
+      <% } %>
+    </header>
+    <section class="container">
+      <!-- shell -->
+    </section>
+    <% if (isShowPlusAction) { %>
+      <img class="side-action" src="<%= require('file-loader?name=[name].[hash].[ext]!./home/plus.png') %>" />
+    <% } else if (isShowEditAction) { %>
+      <img class="side-action" src="<%= require('file-loader?name=[name].[hash].[ext]!./detail/edit.png') %>" />
+    <% } %>
+    <script type="text/javascript" src="<%= require('file-loader?name=[name].[hash].[ext]!./network.js') %>"></script>
+  </body>
+</html>

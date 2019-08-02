@@ -1,0 +1,14 @@
+{
+  "name": "PWA 博文",
+  "short_name": "PWA 博文",
+  "start_url": "/index.html",
+  "theme_color": "#4374A5",
+  "background_color": "#4374A5",
+  "display": "standalone",
+  "orientation": "natural",
+  "icons": [{
+    "src": "/launcher-icon.png",
+    "sizes": "192x192",
+    "type": "image/png"
+  }]
+}
