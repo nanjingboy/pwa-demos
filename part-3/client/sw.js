@@ -57,3 +57,53 @@ const navigationRoute = new workbox.routing.NavigationRoute(workbox.streams.stra
   ({ url }) => fetchShell(url, 'bottom')
 ]));
 workbox.routing.registerRoute(navigationRoute);
+
+const workboxChannel = new BroadcastChannel('workbox');
+const backgroundSyncOptions = {
+  maxRetentionTime: 24 * 60, // 1 day
+  async onSync({ queue }) {
+    let status = true;
+    try {
+      return await queue.replayRequests();
+    } catch (error) {
+      status = false;
+      throw error;
+    } finally {
+      workboxChannel.postMessage({
+        type: 'BACKGROUND_SYNC',
+        meta: queue.name,
+        payload: {
+          status
+        }
+      });
+    }
+  }
+};
+
+workbox.routing.registerRoute(
+  '/articles',
+  new workbox.strategies.NetworkOnly({
+    plugins: [
+      new workbox.backgroundSync.Plugin('createArticle', backgroundSyncOptions)
+    ]
+  }),
+  'POST'
+);
+workbox.routing.registerRoute(
+  /\/articles\/\d+$/,
+  new workbox.strategies.NetworkOnly({
+    plugins: [
+      new workbox.backgroundSync.Plugin('updateArticle', backgroundSyncOptions)
+    ]
+  }),
+  'PUT'
+);
+workbox.routing.registerRoute(
+  /\/articles\/\d+$/,
+  new workbox.strategies.NetworkOnly({
+    plugins: [
+      new workbox.backgroundSync.Plugin('deleteArticle', backgroundSyncOptions)
+    ]
+  }),
+  'DELETE'
+);

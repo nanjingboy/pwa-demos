@@ -8,6 +8,20 @@ const defaultToastOptions = {
   extendedTimeOut: 0
 };
 
+export function fetchWrapper(url, options) {
+  return fetch(url, {
+    ...options,
+    headers: {
+      'content-type': 'application/json'
+    }
+  }).then(async response => {
+    if (response.status === 204) {
+      return null;
+    }
+    return await response.json();
+  })
+}
+
 export async function initSW() {
   if ('serviceWorker' in navigator) {
     const registration = await navigator.serviceWorker.register('/sw.js');
