@@ -45,11 +45,7 @@ async function getSubscription(registration) {
       )
     });
     try {
-      if ('SyncManager' in window) {
-        await registerSync(registration, 'subscribe', subscription);
-      } else {
-        await Network.subscribe(subscription);
-      }
+      await Network.subscribe(subscription);
       return subscription;
     } catch (error) {
       subscription.unsubscribe();
