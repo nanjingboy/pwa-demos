@@ -107,3 +107,31 @@ workbox.routing.registerRoute(
   }),
   'DELETE'
 );
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+self.addEventListener('push', event => {
+  const data = event.data.json();
+  const title = 'PWA 博文';
+  if (data.type === 'subscribe' || data.type === 'article') {
+    event.waitUntil(
+      self.registration.showNotification(title, {
+        data,
+        body: data.message,
+        icon: '/launcher-icon.png',
+      })
+    );
+  }
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const { notification: { data } } = event;
+  if (data.type === 'article' && data.id) {
+    self.clients.openWindow(`/detail/${data.id}`);
+  }
+});

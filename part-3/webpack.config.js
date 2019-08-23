@@ -1,6 +1,8 @@
 const path = require('path');
+const Terser = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { EnvironmentPlugin } = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const ExtractCssChunks = require("extract-css-chunks-webpack-plugin");
 const { ShellPlugin } = require('./webpack/plugins');
@@ -51,9 +53,15 @@ module.exports = {
           minSize: 0
         }
       }
-    }
+    },
+    minimizer: [
+      new Terser({
+        test: /\.m?js$/
+      })
+    ]
   },
   plugins: [
+    new EnvironmentPlugin(['NODE_ENV']),
     new CleanWebpackPlugin(),
     new ExtractCssChunks({ filename: "[name].[chunkhash].css" }),
     ...pageConfigs.html,

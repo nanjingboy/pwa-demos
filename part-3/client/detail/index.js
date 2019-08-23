@@ -1,4 +1,4 @@
-import { initSW } from '@/global';
+import { initSW, initAppInstall } from '@/global';
 import '@/global/index.css';
 import './styles.css';
 
@@ -8,4 +8,5 @@ window.addEventListener('load', () => {
     window.location.href = `/edit/${currentRecordId}`;
   });
   initSW();
+  initAppInstall();
 });

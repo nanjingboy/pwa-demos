@@ -1,4 +1,4 @@
-import { toast, initSW, fetchWrapper } from '@/global';
+import { toast, initSW, initAppInstall, fetchWrapper } from '@/global';
 import '@/global/index.css';
 import './styles.css';
 
@@ -56,14 +56,6 @@ window.addEventListener('load', () => {
     currentRecordId = pathname.match(/(\d+)/)[0];
   }
 
-  const workboxChannel = new BroadcastChannel('workbox');
-  workboxChannel.addEventListener('message',  event => {
-    const { type, payload } = event.data;
-    if (type === 'BACKGROUND_SYNC') {
-      onArticleResponse(payload.status);
-    }
-  });
-
   document.querySelector('.container > .actions > .save').addEventListener('click', () => {
     onSave((title, content) => {
       const data = {
@@ -89,5 +81,13 @@ window.addEventListener('load', () => {
       });
     });
   }
-  initSW();
+  initSW().then(workbox => {
+    workbox.addEventListener('message', event => {
+      const { type, payload } = event.data;
+      if (type === 'BACKGROUND_SYNC') {
+        onArticleResponse(payload.status);
+      }
+    })
+  });
+  initAppInstall();
 });
