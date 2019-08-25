@@ -86,7 +86,7 @@ export async function initSW() {
     registration.addEventListener('updatefound', () => {
       const newWorker = registration.installing;
       newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+        if (newWorker.state === 'installed') {
           showSwUpdateTip(registration);
         }
       });
