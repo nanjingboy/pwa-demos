@@ -87,7 +87,11 @@ export async function initSW() {
       const newWorker = registration.installing;
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed') {
-          showSwUpdateTip(registration);
+          setTimeout(() => {
+            if (newWorker.state === 'installed') {
+              showSwUpdateTip(registration);
+            }
+          }, 200);
         }
       });
     });
