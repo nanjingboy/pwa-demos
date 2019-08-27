@@ -61,7 +61,9 @@ module.exports = {
     ]
   },
   plugins: [
-    new EnvironmentPlugin(['NODE_ENV']),
+    new EnvironmentPlugin({
+      NODE_ENV: 'development'
+    }),
     new CleanWebpackPlugin(),
     new ExtractCssChunks({ filename: "[name].[chunkhash].css" }),
     ...pageConfigs.html,
